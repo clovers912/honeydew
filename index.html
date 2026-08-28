@@ -119,8 +119,8 @@ body{
 .card.mine-c .done .chk span{background:var(--teal);border-color:var(--teal)}
 .weekno{font-family:var(--display);font-size:12px;color:var(--apricot);
   background:var(--surface);border:1px solid var(--apricot-dim);border-radius:20px;padding:2px 10px}
-.card.body-c .h{display:flex;align-items:center;gap:8px}
-.card.body-c .h h2{flex:1}
+.card .h{display:flex;align-items:center;gap:8px}
+.card .h h2{flex:1}
 h2{font-family:var(--display);font-weight:400;font-size:15px;margin:0;color:var(--ink-2);letter-spacing:.03em}
 .body{font-size:14.5px;line-height:1.8;margin:0}
 .empty{font-size:14px;line-height:1.8;color:var(--ink-3);margin:0}
@@ -242,6 +242,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   function ymd(d){ return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2); }
   function addDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
   function dayOf(it){ return it.on || (it.at ? ymd(new Date(it.at)) : null); }
+  function weekOfKey(k){ return Math.floor(since(new Date(k + 'T00:00:00')) / 7); }
+  function viewWeek(){ return sel ? weekOfKey(sel) : wk().w; }
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -428,12 +430,32 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     return h + '</div>';
   }
   function myCard(){
-    var mine = [];
-    S.items.forEach(function(it, i){ if (it.by === 'me') mine.push(i); });
-    if (!mine.length) return '';
-    var h = '<div class="card mine-c"><h2>이번 주 내가 할 일</h2><ul class="items">';
-    mine.forEach(function(i){ h += itemRow(i, false, false); });
-    return h + '</ul></div>';
+    var vw = viewWeek(), now = (sel === null);
+    var mine = [], always = [];
+    S.items.forEach(function(it, i){
+      if (it.by !== 'me') return;
+      var k = dayOf(it);
+      if (!k) always.push(i);                 // 날짜 없는 건 어느 주에나 보인다
+      else if (weekOfKey(k) === vw) mine.push(i);
+    });
+    var rows = mine.concat(always);
+    var h = '<div class="card mine-c"><div class="h"><h2>'
+      + (now ? '이번 주 내가 할 일' : vw + '주에 할 일') + '</h2>'
+      + (now ? '' : '<button class="mini" type="button" id="backtoday">이번 주로</button>')
+      + '</div>';
+    if (rows.length){
+      h += '<ul class="items">';
+      rows.forEach(function(i){ h += itemRow(i, false, false); });
+      h += '</ul>';
+    } else {
+      h += '<p class="empty">' + (now ? '이번 주' : vw + '주') + '엔 아직 없어.</p>';
+    }
+    if (editIdx === null){
+      h += '<div class="addrow"><textarea class="field" id="minp" rows="1" placeholder="'
+        + (now ? '내가 할 일' : vw + '주에 할 일') + '"></textarea>'
+        + '<button class="btn" type="button" id="madd">추가</button></div>';
+    }
+    return h + '</div>';
   }
 
   /* ---------- 달력 ---------- */
@@ -498,8 +520,6 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + '<span class="t">' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + DOW[d.getDay()] + '</span>'
       + (wl ? '<span class="w">' + wl + '</span>' : '')
       + '<button class="x" type="button" id="dayx" aria-label="닫기">×</button></div>';
-    var wnote = (n >= 0) ? WEEKLY[Math.floor(n/7)] : null;
-    if (wnote) h += '<p class="dnote">' + esc(wnote) + '</p>';
     if (idx.length){
       h += '<ul class="items">';
       idx.forEach(function(i){ h += itemRow(i, false, true); });
@@ -528,10 +548,12 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
        + '<span class="edd">예정일 ' + S.edd.replace(/-/g,'.') + '</span></div></div>';
     h += board();
     h += '<div class="card">' + calendar() + '</div>';
-    h += '<div class="card body-c"><div class="h"><h2>이번 주 몸</h2>'
-       + '<span class="weekno">' + W.w + '주</span></div>'
-       + (note ? '<p class="body">' + esc(note) + '</p>'
-               : '<p class="empty">이 주차 설명은 아직 없어.</p>')
+    var vw = viewWeek(), vnote = WEEKLY[vw];
+    h += '<div class="card body-c"><div class="h"><h2>'
+       + (sel === null ? '이번 주 몸' : '그 주 몸') + '</h2>'
+       + '<span class="weekno">' + vw + '주</span></div>'
+       + (vnote ? '<p class="body">' + esc(vnote) + '</p>'
+                : '<p class="empty">이 주차 설명은 아직 없어.</p>')
        + '<div class="dont"><b>하지 말 것</b>“괜찮아?”만 묻지 않기. 물어보는 대신 위에서 하나를 골라 그냥 하기.</div></div>';
     h += myCard();
     h += '<p class="foot">주차별 이야기는 <b>일반적으로 알려진 내용</b>이야. 사람마다 다르고, '
@@ -576,6 +598,13 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
         sel = (sel === b.dataset.day) ? null : b.dataset.day; editIdx = null; render();
       });
     });
+    var minp = document.getElementById('minp'), madd = document.getElementById('madd');
+    if (madd) madd.addEventListener('click', function(){ addMine(minp); });
+    if (minp) minp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addMine(minp); }
+    });
+    var bt = document.getElementById('backtoday');
+    if (bt) bt.addEventListener('click', function(){ sel = null; editIdx = null; render(); });
     var mo = document.getElementById('more');
     if (mo) mo.addEventListener('click', function(){ expanded = !expanded; render(); });
     var x = document.getElementById('dayx');
@@ -604,6 +633,15 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (on) it.on = on;
     S.items.unshift(it);
     inp.value = ''; draft = ''; editIdx = null;
+    render(); save();
+  }
+  function addMine(inp){
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v){ inp.focus(); return; }
+    S.items.unshift({t: v, d: false, by: 'me', at: new Date().toISOString(),
+                     on: sel || ymd(today())});
+    inp.value = ''; editIdx = null;
     render(); save();
   }
   function toggle(i){ if (S.items[i]){ S.items[i].d = !S.items[i].d; render(); save(); } }
