@@ -101,6 +101,22 @@ body{
 .del{border-color:var(--rule);color:var(--ink-3)}
 .del:hover{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
 .erow{display:flex;gap:7px;margin-top:8px}
+.rm{flex:0 0 auto;background:none;border:0;color:var(--ink-3);cursor:pointer;font-size:17px;
+  line-height:1;padding:2px 5px;border-radius:5px;opacity:.5;align-self:flex-start;margin-top:2px}
+.rm:hover{color:var(--danger-ink);background:var(--danger-bg);opacity:1}
+.rm:focus-visible{outline:2px solid var(--danger-line);outline-offset:1px;opacity:1}
+.undo{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:10px;padding:10px 13px}
+.undo b{color:var(--ink);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undo button{font-family:var(--display);font-size:13px;color:var(--plum);background:none;
+  border:1px solid var(--plum-dim);border-radius:5px;padding:5px 11px;cursor:pointer;flex:0 0 auto}
+.undo button:hover{background:var(--plum);color:var(--on-plum)}
+.sugh{font-size:11.5px;color:var(--ink-3);margin:2px 0 0}
+.sug{display:flex;flex-wrap:wrap;gap:7px}
+.sug button{font-family:var(--display);font-size:12.5px;color:var(--teal);background:var(--surface);
+  border:1px dashed var(--teal-dim);border-radius:20px;padding:6px 12px;cursor:pointer;text-align:left}
+.sug button:hover{background:var(--teal);color:#fff;border-style:solid}
+.sug button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .more{align-self:flex-start;background:none;border:0;padding:3px 0;font-family:var(--display);
   font-weight:400;font-size:13.5px;color:var(--plum);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .more:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
@@ -229,6 +245,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   var app = document.getElementById('app');
   var S = null, ref = null, lastJSON = null, writable = true, ready = false;
   var view = null, sel = null, editIdx = null, expanded = false, draft = '';
+  var undoIt = null, sugCache = [];
   var gateMode = 'lmp', gateDate = '';
 
   var DAY = 86400000;
@@ -339,6 +356,24 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     39: "하루하루가 길게 느껴져. 기다리는 게 제일 힘들어.",
     40: "예정일 주간. 예정일에 딱 맞춰 낳는 사람은 오히려 드물대."
   };
+  /* 주차 구간별 추천 — 서류·일정·집안일·관계만. 의료 지시는 넣지 않는다 */
+  var SUGGEST = [
+    {a:5,  b:7,  l:["산부인과 다음 예약 같이 잡기","임신확인서 받으면 바로 사진 찍어두기","냉장고에서 냄새나는 것 치우기","무거운 건 내가 들기"]},
+    {a:8,  b:10, l:["국민행복카드 신청하기","맘편한임신 원스톱 서비스 알아보기","먹을 수 있는 것 몇 개 상비해두기","밤에 냄새 안 나게 설거지 미리 하기"]},
+    {a:11, b:13, l:["회사에 언제 알릴지 같이 정하기","검사 일정 캘린더에 넣기","배 나오기 전 사진 한 장 남기기","입덧 끝나면 먹고 싶다던 것 기억해두기"]},
+    {a:14, b:19, l:["정밀 초음파 같이 가기","임부복·속옷 같이 사러 가기","태동 느껴지면 같이 손 대보기","둘이 갈 만한 데 한 번 다녀오기"]},
+    {a:20, b:23, l:["아기 이름 후보 같이 적어보기","출산 준비물 목록 만들기","산후조리원 알아보기","다리 부으면 주물러주기"]},
+    {a:24, b:27, l:["당뇨 검사일 확인하기 (금식 있음)","카시트·침대 같은 큰 것부터 정하기","장 보는 건 내가 하기","잘 때 쿠션 챙겨주기"]},
+    {a:28, b:31, l:["출산휴가·육아휴직 회사에 확인하기","출산 가방 목록 만들기","병원 가는 길·주차 미리 확인하기","양말 신는 것 도와주기"]},
+    {a:32, b:35, l:["출산 가방 실제로 싸기","산후조리원 예약 확정하기","아기 옷 미리 세탁해두기","진통 시 연락 순서 정해두기"]},
+    {a:36, b:44, l:["가방을 차에 실어두기","밤에도 연락 받을 수 있게 해두기","병원 연락처 저장하기","그냥 옆에 있어주기"]}
+  ];
+  function suggestFor(w){
+    for (var i = 0; i < SUGGEST.length; i++)
+      if (w >= SUGGEST[i].a && w <= SUGGEST[i].b) return SUGGEST[i].l;
+    return [];
+  }
+
   var STARTER = [
     {t: "산부인과 다음 예약 잡고 캘린더에 넣기", d: false, by: "me"},
     {t: "임신확인서 받으면 바로 사진 찍어두기", d: false, by: "me"},
@@ -399,7 +434,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + (showWho ? '<span class="who ' + (it.by === 'wife' ? 'wife">엄마' : 'me">나') + '</span>' : '')
       + esc(it.t) + '</button>'
       + (showDate && key ? '<span class="when">' + fmt(key) + '</span>' : '')
-      + '</span></li>';
+      + '</span>'
+      + '<button class="rm" type="button" data-rm="' + i + '" aria-label="지우기">×</button></li>';
   }
 
   function board(){
@@ -451,6 +487,17 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       h += '<p class="empty">' + (now ? '이번 주' : vw + '주') + '엔 아직 없어.</p>';
     }
     if (editIdx === null){
+      var have = {};
+      S.items.forEach(function(it){ have[it.t] = 1; });
+      var sug = suggestFor(vw).filter(function(t){ return !have[t]; });
+      if (sug.length){
+        h += '<p class="sugh">보통 이 즈음 하는 것들 — 누르면 담겨</p><div class="sug">';
+        sug.forEach(function(t, k){
+          h += '<button type="button" data-sug="' + k + '">' + esc(t) + '</button>';
+        });
+        h += '</div>';
+        sugCache = sug;
+      } else { sugCache = []; }
       h += '<div class="addrow"><textarea class="field" id="minp" rows="1" placeholder="'
         + (now ? '내가 할 일' : vw + '주에 할 일') + '"></textarea>'
         + '<button class="btn" type="button" id="madd">추가</button></div>';
@@ -542,6 +589,10 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     var h = '<div class="wrap">';
     h += '<div class="top">' + markSmall() + '<span class="name">허니듀</span>'
        + (writable ? '' : '<span class="mode">읽기 전용</span>') + '</div>';
+    if (undoIt){
+      h += '<div class="undo"><span>지웠어</span><b>' + esc(undoIt.t) + '</b>'
+        + '<button type="button" id="undo">되돌리기</button></div>';
+    }
     h += '<div class="hero">' + mascot(96, W.w, awake)
        + '<div class="txt"><span class="wk">' + W.w + '주 ' + W.d + '일</span>'
        + '<span class="dday">D-' + D + '</span>'
@@ -603,6 +654,17 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (minp) minp.addEventListener('keydown', function(e){
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addMine(minp); }
     });
+    app.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ del(+b.dataset.rm); });
+    });
+    app.querySelectorAll('[data-sug]').forEach(function(b){
+      b.addEventListener('click', function(){ addSug(sugCache[+b.dataset.sug]); });
+    });
+    var un = document.getElementById('undo');
+    if (un) un.addEventListener('click', function(){
+      if (!undoIt) return;
+      S.items.unshift(undoIt); undoIt = null; render(); save();
+    });
     var bt = document.getElementById('backtoday');
     if (bt) bt.addEventListener('click', function(){ sel = null; editIdx = null; render(); });
     var mo = document.getElementById('more');
@@ -626,6 +688,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
 
   function addItem(inp, on){
+    undoIt = null;
     if (!inp) return;
     var v = inp.value.trim();
     if (!v){ inp.focus(); return; }
@@ -636,6 +699,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     render(); save();
   }
   function addMine(inp){
+    undoIt = null;
     if (!inp) return;
     var v = inp.value.trim();
     if (!v){ inp.focus(); return; }
@@ -644,7 +708,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     inp.value = ''; editIdx = null;
     render(); save();
   }
-  function toggle(i){ if (S.items[i]){ S.items[i].d = !S.items[i].d; render(); save(); } }
+  function toggle(i){
+    undoIt = null; if (S.items[i]){ S.items[i].d = !S.items[i].d; render(); save(); } }
   function saveEdit(i){
     var ed = document.getElementById('ed');
     if (!ed || !S.items[i]) return;
@@ -652,7 +717,17 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (!v){ ed.focus(); return; }
     S.items[i].t = v; editIdx = null; render(); save();
   }
-  function del(i){ if (S.items[i]){ S.items.splice(i, 1); editIdx = null; render(); save(); } }
+  function del(i){
+    if (!S.items[i]) return;
+    undoIt = S.items.splice(i, 1)[0];
+    editIdx = null; render(); save();
+  }
+  function addSug(t){
+    if (!t) return;
+    S.items.unshift({t: t, d: false, by: 'me', at: new Date().toISOString(),
+                     on: sel || ymd(today())});
+    undoIt = null; render(); save();
+  }
 
   /* ---------- 저장 ---------- */
   function save(){
