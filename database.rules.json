@@ -2,9 +2,27 @@
   "rules": {
     "rooms": {
       "$room": {
-        ".read": "$room.length >= 24",
+        ".read":  "$room.length >= 24",
         ".write": "$room.length >= 24",
-        ".validate": "newData.hasChildren(['lmp','edd'])"
+        ".validate": "newData.hasChildren(['lmp','edd'])",
+
+        "lmp":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+        "edd":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+
+        "items": {
+          "$id": {
+            ".validate": "newData.hasChildren(['t','by'])",
+            "t":  { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
+            "by": { ".validate": "newData.isString() && (newData.val() === 'wife' || newData.val() === 'me')" },
+            "d":  { ".validate": "newData.isBoolean()" },
+            "x":  { ".validate": "newData.isBoolean()" },
+            "at": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "on": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "$other": { ".validate": false }
       }
     }
   }
