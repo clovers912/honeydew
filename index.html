@@ -9,17 +9,21 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%88%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style id="appcss">
 :root{
-  --bg:#F6F3F9; --surface:#FFFFFF; --surface-2:#EFEAF6;
-  --ink:#26202D; --ink-2:#5F566B; --ink-3:#7A7185; --rule:#E4DCEE;
-  --plum:#7A4DA6; --plum-dim:#C0A8D8; --plum-wash:rgba(122,77,166,.09);
-  --on-plum:#FFFFFF; --on-plum-2:#E6D8F2; --bubble:#F1E9F8;
-  --honey:#5F7C2B; --honey-dim:#A8BE74; --rind:#7E9647;
-  --t1:#E3D6F0; --t2:#CDB6E2; --t3:#B18FD0;
+  --bg:#FAF7FB; --surface:#FFFFFF; --surface-2:#F1ECF7;
+  --ink:#2A2430; --ink-2:#635A6E; --ink-3:#8A8194; --rule:#E8E1EF;
+  /* 의미마다 색이 하나씩. 장식이 아니라 구분이다 */
+  --plum:#7A4DA6;   --plum-dim:#C7B0DD;  --plum-wash:#F4ECFB;   /* 엄마·행동 */
+  --honey:#5F7C2B;  --honey-dim:#AECB7B; --honey-wash:#F1F7E5;  /* 아이 */
+  --apricot:#C1663C; --apricot-dim:#EFBEA3; --apricot-wash:#FDF1EA; /* 몸 */
+  --teal:#2C7B78;   --teal-dim:#9BCAC7;  --teal-wash:#E8F4F3;   /* 내 할 일 */
+  --on-plum:#FFFFFF; --on-plum-2:#E6D8F2; --bubble:#F4ECFB;
+  --rind:#7E9647;
+  --t1:#D9C6EC; --t2:#F0C3A6; --t3:#9CCBC8;
   --danger-bg:#FBE9EE; --danger-line:#E0A8B8; --danger-ink:#8E2F47;
-  --serif:"Hahmlet",Georgia,serif;
+  --display:"Jua","IBM Plex Sans KR",sans-serif;
   --sans:"IBM Plex Sans KR","Pretendard","Malgun Gothic",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
 }
@@ -36,12 +40,12 @@ body{
 
 /* 상단 */
 .top{display:flex;align-items:center;gap:11px}
-.top .name{font-family:var(--serif);font-weight:500;font-size:17px;letter-spacing:.02em}
+.top .name{font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:.02em}
 .top .mode{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
   color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:4px 8px}
 .hero{display:flex;align-items:center;gap:20px}
 .hero .txt{display:flex;flex-direction:column;gap:3px}
-.wk{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em}
+.wk{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em}
 .dday{font-family:var(--mono);font-size:12.5px;color:var(--plum);letter-spacing:.06em}
 .edd{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.06em}
 .mascot{display:block}
@@ -57,7 +61,7 @@ body{
 .bubble::after{content:"";position:absolute;top:-7.5px;left:33px;
   border-left:8px solid transparent;border-right:8px solid transparent;
   border-bottom:8px solid var(--bubble)}
-.says{font-family:var(--serif);font-weight:500;font-size:16px;color:var(--plum);margin:0;line-height:1.5}
+.says{font-family:var(--display);font-weight:500;font-size:16px;color:var(--plum);margin:0;line-height:1.5}
 .items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column}
 .items li{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--plum-dim)}
 .items li:first-child{border-top:0;padding-top:2px}
@@ -74,7 +78,7 @@ body{
 .lab:hover{color:var(--plum)}
 .lab:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
 .done .lab{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-3)}
-.who{display:inline-block;font-family:var(--sans);font-weight:500;font-size:10px;letter-spacing:0;
+.who{display:inline-block;font-family:var(--display);font-weight:400;font-size:11px;letter-spacing:0;
   padding:1.5px 8px;border-radius:20px;margin-right:7px;vertical-align:1.5px;line-height:1.5;white-space:nowrap}
 .who.wife{background:var(--plum);color:var(--on-plum)}
 .who.me{background:transparent;box-shadow:inset 0 0 0 1px var(--plum-dim);color:var(--ink-2)}
@@ -86,19 +90,19 @@ body{
   line-height:1.6;resize:none;min-height:46px}
 .field::placeholder{color:var(--ink-3)}
 .field:focus{outline:none;border-color:var(--plum)}
-.btn{font-family:var(--sans);font-weight:500;font-size:14px;padding:11px 16px;border:0;border-radius:6px;
+.btn{font-family:var(--display);font-weight:400;font-size:15px;padding:11px 16px;border:0;border-radius:6px;
   background:var(--plum);color:var(--on-plum);cursor:pointer;letter-spacing:.01em;white-space:nowrap;align-self:stretch}
 .btn:disabled{background:var(--surface-2);color:var(--ink-3);cursor:default}
 .btn:focus-visible{outline:2px solid var(--plum);outline-offset:3px}
-.mini{font-family:var(--sans);font-weight:500;font-size:12px;padding:6px 12px;border-radius:5px;
+.mini{font-family:var(--display);font-weight:400;font-size:13px;padding:6px 12px;border-radius:5px;
   border:1px solid var(--plum-dim);background:var(--surface);color:var(--plum);cursor:pointer}
 .mini:hover{background:var(--plum);color:var(--on-plum)}
 .mini:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
 .del{border-color:var(--rule);color:var(--ink-3)}
 .del:hover{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
 .erow{display:flex;gap:7px;margin-top:8px}
-.more{align-self:flex-start;background:none;border:0;padding:3px 0;font-family:var(--sans);
-  font-weight:500;font-size:12.5px;color:var(--plum);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.more{align-self:flex-start;background:none;border:0;padding:3px 0;font-family:var(--display);
+  font-weight:400;font-size:13.5px;color:var(--plum);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .more:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
 .status{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-3);min-height:13px}
 .status.err{color:var(--danger-ink)}
@@ -106,12 +110,23 @@ body{
 /* 카드 */
 .card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:20px 19px;
   display:flex;flex-direction:column;gap:13px}
-h2{font-family:var(--sans);font-weight:500;font-size:13.5px;margin:0;color:var(--ink-2);letter-spacing:.03em}
+.card.body-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
+.card.body-c h2{color:var(--apricot)}
+.card.mine-c{background:var(--teal-wash);border-color:var(--teal-dim)}
+.card.mine-c h2{color:var(--teal)}
+.card.mine-c .items li{border-top-color:var(--teal-dim)}
+.card.mine-c .chk span{border-color:var(--teal-dim)}
+.card.mine-c .done .chk span{background:var(--teal);border-color:var(--teal)}
+.weekno{font-family:var(--display);font-size:12px;color:var(--apricot);
+  background:var(--surface);border:1px solid var(--apricot-dim);border-radius:20px;padding:2px 10px}
+.card.body-c .h{display:flex;align-items:center;gap:8px}
+.card.body-c .h h2{flex:1}
+h2{font-family:var(--display);font-weight:400;font-size:15px;margin:0;color:var(--ink-2);letter-spacing:.03em}
 .body{font-size:14.5px;line-height:1.8;margin:0}
 .empty{font-size:14px;line-height:1.8;color:var(--ink-3);margin:0}
-.dont{border-left:2px solid var(--plum);background:var(--surface-2);border-radius:0 5px 5px 0;
+.dont{border-left:3px solid var(--apricot);background:var(--surface);border-radius:0 5px 5px 0;
   padding:12px 14px;font-size:13.5px;line-height:1.75;color:var(--ink-2)}
-.dont b{display:block;color:var(--plum);font-weight:500;font-size:12.5px;margin-bottom:3px;letter-spacing:.02em}
+.dont b{display:block;color:var(--apricot);font-weight:500;font-size:12.5px;margin-bottom:3px;letter-spacing:.02em}
 
 /* 달력 */
 .calhead{display:flex;align-items:center;gap:9px}
@@ -122,7 +137,7 @@ h2{font-family:var(--sans);font-weight:500;font-size:13.5px;margin:0;color:var(-
 .nav:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
 .mon{font-family:var(--mono);font-size:12px;color:var(--ink);letter-spacing:.06em;min-width:66px;text-align:center}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.dow{font-family:var(--sans);font-weight:500;font-size:10.5px;color:var(--ink-3);text-align:center;padding-bottom:6px}
+.dow{font-family:var(--display);font-weight:400;font-size:11.5px;color:var(--ink-3);text-align:center;padding-bottom:6px}
 .dow.sun{color:var(--plum-dim)}
 .cell{aspect-ratio:1/.88;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;border-radius:8px;position:relative;background:none;border:1px solid transparent;
@@ -136,8 +151,8 @@ h2{font-family:var(--sans);font-weight:500;font-size:13.5px;margin:0;color:var(-
 .cell.today{background:var(--plum);border-color:var(--plum)}
 .cell.today .n{color:var(--on-plum);font-weight:500}
 .cell.today .w{color:var(--on-plum-2)}
-.cell.edd{border-color:var(--honey);border-width:1.5px}
-.cell.edd .n{color:var(--honey);font-weight:500}
+.cell.edd{border-color:var(--apricot);border-width:1.5px}
+.cell.edd .n{color:var(--apricot);font-weight:500}
 .cell.sel{border-color:var(--plum);border-width:2px}
 .cell.today.sel{border-color:var(--ink)}
 .dots{position:absolute;bottom:4px;display:flex;gap:2px}
@@ -164,11 +179,13 @@ h2{font-family:var(--sans);font-weight:500;font-size:13.5px;margin:0;color:var(-
 /* 날짜 상세 */
 .day{border-top:1px solid var(--rule);padding-top:15px;display:flex;flex-direction:column;gap:11px}
 .dayhead{display:flex;align-items:baseline;gap:9px}
-.dayhead .t{font-family:var(--serif);font-weight:500;font-size:17px}
+.dayhead .t{font-family:var(--display);font-weight:500;font-size:17px}
 .dayhead .w{font-family:var(--mono);font-size:10.5px;color:var(--honey);letter-spacing:.05em}
 .dayhead .x{margin-left:auto;background:none;border:0;color:var(--ink-3);cursor:pointer;
   font-size:17px;line-height:1;padding:2px 6px;border-radius:4px}
 .dayhead .x:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.dnote{font-size:13.5px;line-height:1.75;color:var(--apricot);margin:0;
+  background:var(--apricot-wash);border-radius:8px;padding:11px 13px}
 .dnone{font-size:13.5px;color:var(--ink-3);margin:0;line-height:1.7}
 .day .items li{border-top-color:var(--rule)}
 
@@ -177,10 +194,10 @@ h2{font-family:var(--sans);font-weight:500;font-size:13.5px;margin:0;color:var(-
 
 /* 설정 · 안내 화면 */
 .gate{max-width:420px;margin:0 auto;padding:64px 24px;display:flex;flex-direction:column;gap:18px}
-.gate h1{font-family:var(--serif);font-weight:600;font-size:30px;margin:0;letter-spacing:-.02em}
+.gate h1{font-family:var(--display);font-weight:600;font-size:30px;margin:0;letter-spacing:-.02em}
 .gate p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.8}
 .seg{display:flex;border:1px solid var(--plum-dim);border-radius:8px;overflow:hidden;width:fit-content}
-.seg button{font-family:var(--sans);font-size:13.5px;color:var(--plum);background:var(--surface);
+.seg button{font-family:var(--display);font-size:14.5px;color:var(--plum);background:var(--surface);
   border:0;padding:10px 16px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--plum);color:var(--on-plum)}
 .seg button:focus-visible{outline:2px solid var(--plum);outline-offset:-2px}
@@ -283,7 +300,42 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
 
   var WEEKLY = {
-    5: "착상이 막 끝난 시기야. 아직 배는 안 나오지만 몸은 이미 바뀌고 있어. 피로가 갑자기 몰려오고 냄새에 예민해질 수 있어."
+    5: "착상이 막 끝났어. 아직 배는 안 나오지만 몸은 이미 바뀌고 있어. 피로가 갑자기 몰려오고 냄새에 예민해질 수 있어.",
+    6: "입덧이 시작될 수 있어. 아침보다 저녁에 더 힘든 사람도 많아. 먹고 싶은 게 하루가 다르게 바뀌어.",
+    7: "심장 소리를 들을 수 있는 시기야. 잠이 쏟아지고, 이유 없이 울컥하기도 해.",
+    8: "입덧이 가장 심해지는 구간으로 가. 냄새 때문에 부엌 근처도 힘들 수 있어.",
+    9: "몸은 계속 힘든데 겉으로는 티가 안 나서 더 답답한 시기야.",
+    10: "손발이 다 생겼어. 입덧이 조금씩 누그러지는 사람도 있어.",
+    11: "초기 검사들을 하는 즈음이야. 병원 다녀온 날은 유난히 지칠 수 있어.",
+    12: "1기가 끝나가. 입덧이 가벼워지고 기운이 조금 돌아오기도 해.",
+    13: "1기 마지막 주. 마음이 한결 놓이는 시기라고들 해.",
+    14: "2기 시작. 흔히 '가장 편한 시기'라고 부르는 구간에 들어섰어.",
+    15: "입맛이 돌아와. 갑자기 먹고 싶은 게 생기기도 해.",
+    16: "배가 조금씩 나오기 시작해. 옷이 슬슬 안 맞아.",
+    17: "태동을 처음 느끼는 사람도 있어. 아주 약한 꿈틀거림이야.",
+    18: "정밀 초음파를 보는 즈음이야. 오래 걸리는 검사라 같이 가면 좋아.",
+    19: "몸무게가 늘면서 허리가 아플 수 있어.",
+    20: "반환점이야. 절반 왔어.",
+    21: "태동이 뚜렷해져. 밖에서 손으로 느껴지기도 해.",
+    22: "다리가 붓거나 밤에 쥐가 나기 시작할 수 있어.",
+    23: "잠자리가 불편해지는 시기. 옆으로 누워 자게 돼.",
+    24: "임신성 당뇨 검사를 하는 즈음이야. 검사 전에 금식이 있어.",
+    25: "배가 눈에 띄게 나와. 조금만 움직여도 숨이 차.",
+    26: "아기가 소리에 반응해. 말을 걸면 움직이기도 해.",
+    27: "2기 마지막 주. 몸이 본격적으로 무거워지기 시작해.",
+    28: "3기 시작. 병원 가는 간격이 짧아져.",
+    29: "속쓰림이 심해질 수 있어. 조금씩 자주 먹는 게 편해.",
+    30: "몸이 무거워서 일상 동작이 다 느려져. 양말 신기도 일이야.",
+    31: "갈비뼈 밑이 결리기도 해. 태동이 세져서 잠을 깨기도 해.",
+    32: "아기가 나올 자세를 잡기 시작해.",
+    33: "화장실이 잦아지고 밤에 자주 깨.",
+    34: "병원 갈 때 들고 갈 짐을 슬슬 생각할 시기야.",
+    35: "진료가 매주로 바뀌는 즈음이야.",
+    36: "만삭에 가까워졌어. 아기가 딱 허니듀 멜론만 해. 오늘이 그 날이야.",
+    37: "언제 나와도 이상하지 않은 시기에 들어섰어.",
+    38: "가진통이 오기도 해. 진짜인지 헷갈릴 수 있어.",
+    39: "하루하루가 길게 느껴져. 기다리는 게 제일 힘들어.",
+    40: "예정일 주간. 예정일에 딱 맞춰 낳는 사람은 오히려 드물대."
   };
   var STARTER = [
     {t: "산부인과 다음 예약 잡고 캘린더에 넣기", d: false, by: "me"},
@@ -379,7 +431,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     var mine = [];
     S.items.forEach(function(it, i){ if (it.by === 'me') mine.push(i); });
     if (!mine.length) return '';
-    var h = '<div class="card"><h2>이번 주 내가 할 일</h2><ul class="items">';
+    var h = '<div class="card mine-c"><h2>이번 주 내가 할 일</h2><ul class="items">';
     mine.forEach(function(i){ h += itemRow(i, false, false); });
     return h + '</ul></div>';
   }
@@ -446,6 +498,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + '<span class="t">' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + DOW[d.getDay()] + '</span>'
       + (wl ? '<span class="w">' + wl + '</span>' : '')
       + '<button class="x" type="button" id="dayx" aria-label="닫기">×</button></div>';
+    var wnote = (n >= 0) ? WEEKLY[Math.floor(n/7)] : null;
+    if (wnote) h += '<p class="dnote">' + esc(wnote) + '</p>';
     if (idx.length){
       h += '<ul class="items">';
       idx.forEach(function(i){ h += itemRow(i, false, true); });
@@ -474,9 +528,10 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
        + '<span class="edd">예정일 ' + S.edd.replace(/-/g,'.') + '</span></div></div>';
     h += board();
     h += '<div class="card">' + calendar() + '</div>';
-    h += '<div class="card"><h2>이번 주 몸</h2>'
+    h += '<div class="card body-c"><div class="h"><h2>이번 주 몸</h2>'
+       + '<span class="weekno">' + W.w + '주</span></div>'
        + (note ? '<p class="body">' + esc(note) + '</p>'
-               : '<p class="empty">이번 주 내용은 아직 비어 있어.<br>뭐가 들어가면 좋을지 위에 적어줘.</p>')
+               : '<p class="empty">이 주차 설명은 아직 없어.</p>')
        + '<div class="dont"><b>하지 말 것</b>“괜찮아?”만 묻지 않기. 물어보는 대신 위에서 하나를 골라 그냥 하기.</div></div>';
     h += myCard();
     h += '<p class="foot">이거 내가 만들어본 거야. <b>위에 적은 몸 상태랑 할 일은 내가 추측으로 쓴 거라 틀렸을 수 있어.</b> '
