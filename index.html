@@ -543,6 +543,28 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     {a:32, b:35, l:["출산 가방 실제로 싸기","산후조리원 예약 확정하기","아기 옷 미리 세탁해두기","진통 시 연락 순서 정해두기"]},
     {a:36, b:44, l:["가방을 차에 실어두기","밤에도 연락 받을 수 있게 해두기","병원 연락처 저장하기","그냥 옆에 있어주기"]}
   ];
+
+  /* 하지 말 것 — 구간마다 하나. SUGGEST 와 같은 구간을 쓴다.
+     🔴 지어낸 조언이 아니라 위 WEEKLY(그 시기 몸의 변화)에서 곧바로 따라 나오는
+     행동만 적는다. 의학 조언이 아니고, '남편이 무엇을 하지 말지'에 대한 말이다.
+     주차마다 40개를 채우려 들면 이 프로젝트가 실패하는 방식 그대로가 된다. */
+  var DONT = [
+    {a:5,  b:7,  t:"“괜찮아?”만 묻지 않기. 물어보는 대신 위에서 하나를 골라 그냥 하기."},
+    {a:8,  b:10, t:"“뭐 먹고 싶어?”라고 묻지 않기. 어제 먹은 게 오늘은 역할 수 있어. 몇 개 사다 두고 고르게 하기."},
+    {a:11, b:13, t:"“이제 좀 괜찮아졌지?”라고 넘겨짚지 않기. 나아진 날과 아닌 날이 섞여 있어."},
+    {a:14, b:19, t:"“지금 편하다며”로 미루지 않기. 편해진 만큼 하고 싶은 게 쌓여 있어. 같이 나갈 날을 먼저 잡기."},
+    {a:20, b:23, t:"태동을 재촉하지 않기. “왜 안 움직여?”는 걱정만 옮겨. 대신 부은 다리부터 주물러 주기."},
+    {a:24, b:27, t:"검사 전날 밤참 같이 먹자고 하지 않기. 금식이 있어. 대신 끝나고 먹을 걸 미리 정해두기."},
+    {a:28, b:31, t:"허리 굽히는 일을 부탁하지 않기. 양말·신발·바닥에 있는 건 그냥 내가 하기."},
+    {a:32, b:35, t:"출산 가방을 혼자 싸두지 않기. 어디에 뭐가 있는지 둘 다 알아야 해. 같이 싸서 차에 실어두기."},
+    {a:36, b:44, t:"매일 “아직이야?”라고 묻지 않기. 제일 기다리는 사람은 옆에 있어. 연락 되는 상태로 그냥 옆에 있기."}
+  ];
+  function dontFor(w){
+    for (var i = 0; i < DONT.length; i++)
+      if (w >= DONT[i].a && w <= DONT[i].b) return DONT[i].t;
+    return null;
+  }
+
   function blockFor(w){
     for (var i = 0; i < SUGGEST.length; i++)
       if (w >= SUGGEST[i].a && w <= SUGGEST[i].b) return SUGGEST[i];
@@ -879,13 +901,14 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
        + '<span class="edd">예정일 ' + S.edd.replace(/-/g,'.') + '</span></div></div>';
     h += board();
     h += '<div class="card">' + calendar() + '</div>';
-    var vw = viewWeek(), vnote = WEEKLY[vw];
+    var vw = viewWeek(), vnote = WEEKLY[vw], dnote = dontFor(vw);
     h += '<div class="card body-c"><div class="h"><h2>'
        + (sel === null ? '이번 주 몸' : '그 주 몸') + '</h2>'
        + '<span class="weekno">' + vw + '주</span></div>'
        + (vnote ? '<p class="body">' + esc(vnote) + '</p>'
                 : '<p class="empty">이 주차 설명은 아직 없어.</p>')
-       + '<div class="dont"><b>하지 말 것</b>“괜찮아?”만 묻지 않기. 물어보는 대신 위에서 하나를 골라 그냥 하기.</div></div>';
+       + (dnote ? '<div class="dont"><b>하지 말 것</b>' + esc(dnote) + '</div>' : '')
+       + '</div>';
     h += myCard();
     h += trashBox();
     h += '<p class="foot">주차별 이야기는 <b>일반적으로 알려진 내용</b>이야. 사람마다 다르고, '

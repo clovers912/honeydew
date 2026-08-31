@@ -19,6 +19,15 @@ if (!m) {
 const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey'];
 const F = new Function(m[0] + '\nreturn {' + api.join(',') + '};')();
 
+/* 화면 문구 표 — 주차마다 빠진 칸이 있으면 그 주에 상자가 통째로 사라진다.
+   에러가 아니라 '없는 화면'으로 나타나므로 눈으로는 안 잡힌다. */
+const tm = html.match(/var WEEKLY = \{[\s\S]*?\n  \};[\s\S]*?var DONT = \[[\s\S]*?\n  \];[\s\S]*?\n  \}/);
+if (!tm) {
+  console.error('index.html 에서 WEEKLY/DONT 를 찾지 못했다.');
+  process.exit(1);
+}
+const T = new Function(tm[0] + '\nreturn {WEEKLY, DONT, dontFor};')();
+
 let pass = 0, fail = 0;
 function eq(actual, expected, what) {
   const a = JSON.stringify(actual), b = JSON.stringify(expected);
@@ -97,6 +106,23 @@ group('주차 시작일 — 구간째 담을 자리', () => {
     eq(F.weeksFrom(LMP, d).w, w, w + '주 시작일의 주차는 ' + w);
     eq(F.weeksFrom(LMP, d).d, 0, w + '주 시작일은 0일째');
   });
+});
+
+group('하지 말 것 — 주차마다 빈 칸이 없어야 한다', () => {
+  const weeks = Object.keys(T.WEEKLY).map(Number).sort((a, b) => a - b);
+  eq(weeks[0], 5, '몸 설명은 5주부터');
+  eq(weeks[weeks.length - 1], 40, '몸 설명은 40주까지');
+  // 몸 설명이 있는 주에는 반드시 하지 말 것도 있어야 한다.
+  eq(weeks.filter(w => !T.dontFor(w)), [], '하지 말 것이 비어 있는 주');
+  // 구간이 겹치거나 벌어지면 안 된다.
+  for (let i = 1; i < T.DONT.length; i++) {
+    eq(T.DONT[i].a, T.DONT[i - 1].b + 1, T.DONT[i - 1].b + '주 다음은 바로 이어진다');
+  }
+  eq(T.DONT.length, 9, '구간 9개');
+  eq(T.dontFor(4), null, '4주는 범위 밖');
+  eq(T.dontFor(45), null, '45주는 범위 밖');
+  eq(T.dontFor(44), T.dontFor(36), '36~44주는 한 구간');
+  eq(new Set(T.DONT.map(d => d.t)).size, 9, '아홉 문구가 서로 다르다');
 });
 
 console.log('');
