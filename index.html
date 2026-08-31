@@ -1066,6 +1066,15 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     render(); wr('items/' + k + '/x', null);
   }
 
+  /* 안드로이드에서 '앱 설치'(WebAPK)가 되려면 서비스워커가 있어야 한다.
+     없으면 크롬이 단순 바로가기만 만들고, 런처에 따라 그마저 안 생긴다.
+     sw.js 는 캐시를 하지 않는다 — 이유는 그 파일 주석에. */
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+
   /* ---------- 시작 ---------- */
   if (!ROOM || ROOM.length < 24){
     /* 홈화면 아이콘으로 열었다면 '받은 링크를 다시 눌러줘'가 소용없다 —
