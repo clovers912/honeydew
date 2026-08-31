@@ -107,6 +107,9 @@ body{
 .del{border-color:var(--rule);color:var(--ink-3)}
 .del:hover{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
 .erow{display:flex;gap:7px;margin-top:8px}
+.edate{display:flex;align-items:center;gap:8px;margin-top:8px}
+.edate label{font-family:var(--sans);font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+.edate input[type="date"]{flex:1;font-size:15px;padding:8px 10px}
 .rm{flex:0 0 auto;background:none;border:0;color:var(--ink-3);cursor:pointer;font-size:17px;
   line-height:1;padding:2px 5px;border-radius:5px;opacity:.5;align-self:flex-start;margin-top:2px}
 .rm:hover{color:var(--danger-ink);background:var(--danger-bg);opacity:1}
@@ -117,7 +120,8 @@ body{
 .undo button{font-family:var(--display);font-size:13px;color:var(--plum);background:none;
   border:1px solid var(--plum-dim);border-radius:5px;padding:5px 11px;cursor:pointer;flex:0 0 auto}
 .undo button:hover{background:var(--plum);color:var(--on-plum)}
-.sugh{font-size:11.5px;color:var(--ink-3);margin:2px 0 0}
+.sugh{font-size:11.5px;color:var(--ink-3);margin:2px 0 0;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .sug{display:flex;flex-wrap:wrap;gap:7px}
 .sug button{font-family:var(--display);font-size:12.5px;color:var(--teal);background:var(--surface);
   border:1px dashed var(--teal-dim);border-radius:20px;padding:6px 12px;cursor:pointer;text-align:left}
@@ -188,6 +192,7 @@ h2{font-family:var(--display);font-weight:400;font-size:15px;margin:0;color:var(
 .band.b3{left:67.5%;width:32.5%;background:var(--t3);border-radius:0 4px 4px 0}
 .mk{position:absolute;top:2px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
 .mk .pin{width:2px;height:20px;background:var(--plum)}
+.mk.now .pin{width:1px;height:26px;background:var(--plum-dim)}
 .mk .dot{width:9px;height:9px;border-radius:50%;background:var(--plum);margin-top:-4px;border:2px solid var(--surface)}
 .railx{position:relative;height:13px;font-family:var(--sans);font-size:10px;color:var(--ink-3);
   letter-spacing:.04em;margin-top:1px}
@@ -311,7 +316,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   var view = null, sel = null, editKey = null, expanded = false, showTrash = false;
   var undoKey = null, undoText = '', sugCache = [];
   var gateMode = 'lmp', gateDate = '';
-  var INPUTS = ['inp','minp','dinp','ed'];
+  var INPUTS = ['inp','minp','dinp','ed','edon'];
   var drafts = {}, focusId = null, focusPos = 0, focusNext = null;
 
   /* @pure:start — 날짜 계산. test/week.test.js 가 이 블록을 그대로 떼어 검사한다. */
@@ -334,6 +339,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     var d = parseDay(k);
     return ('0'+(d.getMonth()+1)).slice(-2) + '.' + ('0'+d.getDate()).slice(-2) + ' ' + DOW[d.getDay()];
   }
+  /* 주차 w 가 시작하는 날. 구간째 담을 때 어디에 놓을지 정하는 데 쓴다. */
+  function weekStartKey(lmp, w){ return ymd(addDays(lmp, w * 7)); }
   /* @pure:end */
 
   function today(){ return midnight(new Date()); }
@@ -343,6 +350,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   function wk(){ return weeksFrom(lmpDate(), today()); }
   function dday(){ return ddayTo(eddDate(), today()); }
   function weekOfKey(k){ return Math.floor(since(parseDay(k)) / 7); }
+  function railPct(n){ return Math.max(0, Math.min(100, (n / 280) * 100)).toFixed(1); }
   function viewWeek(){ return sel ? weekOfKey(sel) : wk().w; }
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -513,10 +521,18 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     {a:32, b:35, l:["출산 가방 실제로 싸기","산후조리원 예약 확정하기","아기 옷 미리 세탁해두기","진통 시 연락 순서 정해두기"]},
     {a:36, b:44, l:["가방을 차에 실어두기","밤에도 연락 받을 수 있게 해두기","병원 연락처 저장하기","그냥 옆에 있어주기"]}
   ];
-  function suggestFor(w){
+  function blockFor(w){
     for (var i = 0; i < SUGGEST.length; i++)
-      if (w >= SUGGEST[i].a && w <= SUGGEST[i].b) return SUGGEST[i].l;
-    return [];
+      if (w >= SUGGEST[i].a && w <= SUGGEST[i].b) return SUGGEST[i];
+    return null;
+  }
+  function suggestFor(w){ var b = blockFor(w); return b ? b.l : []; }
+  /* 이미 앱에 있는 문구. 🔴 지운 것(x)도 '있는 것'으로 센다 —
+     안 그러면 지운 추천이 다시 떠서 '지우더라도'가 안 지켜진다. */
+  function suggestHave(){
+    var have = {}, all = items();
+    Object.keys(all).forEach(function(k){ if (all[k]) have[all[k].t] = 1; });
+    return have;
   }
 
   var STARTER = [
@@ -608,6 +624,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (!it) return '';
     if (editKey === k && writable){
       return '<li><div style="flex:1"><textarea class="field" id="ed" rows="2"></textarea>'
+        + '<div class="edate"><label for="edon">날짜</label>'
+        + '<input type="date" id="edon" value="' + (dayOf(it) || ymd(today())) + '"></div>'
         + '<div class="erow"><button class="mini" type="button" data-save="' + k + '">저장</button>'
         + '<button class="mini" type="button" data-cancel="1">취소</button>'
         + '<button class="mini del" type="button" data-rm="' + k + '">지우기</button></div></div></li>';
@@ -678,11 +696,15 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       h += '<p class="empty">' + (now ? '이번 주' : vw + '주') + '엔 아직 없어.</p>';
     }
     if (!editKey){
-      var have = {};
-      list().forEach(function(p){ have[p[1].t] = 1; });
+      var have = suggestHave();
       var sug = suggestFor(vw).filter(function(t){ return !have[t]; });
       if (sug.length){
-        h += '<p class="sugh">보통 이 즈음 하는 것들 — 누르면 담겨</p><div class="sug">';
+        var blk = blockFor(vw);
+        h += '<p class="sugh"><span>보통 이 즈음 하는 것들 — 누르면 담겨</span>'
+          + (blk && sug.length > 1
+             ? '<button class="mini" type="button" id="addblk">'
+               + blk.a + '~' + blk.b + '주 ' + sug.length + '개 담기</button>' : '')
+          + '</p><div class="sug">';
         sug.forEach(function(t, k){
           h += '<button type="button" data-sug="' + k + '">' + esc(t) + '</button>';
         });
@@ -738,15 +760,19 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
         + (isWk ? '<span class="w">' + (n/7) + '주</span>' : '') + dots + '</button>';
     }
     h += '</div>';
-    var pct = Math.max(0, Math.min(100, (wk().n / 280) * 100));
+    /* 마커는 '보고 있는 날'을 가리킨다. 오늘만 가리키면 날짜를 눌러도 안 움직인다. */
+    var railN = sel ? since(parseDay(sel)) : wk().n;
     h += '<div class="rail"><div class="railbar">'
       + '<span class="band b1"></span><span class="band b2"></span><span class="band b3"></span>'
-      + '<span class="mk" style="left:' + pct.toFixed(1) + '%"><span class="pin"></span><span class="dot"></span></span>'
+      + (sel ? '<span class="mk now" style="left:' + railPct(wk().n) + '%"><span class="pin"></span></span>' : '')
+      + '<span class="mk" style="left:' + railPct(railN) + '%"><span class="pin"></span><span class="dot"></span></span>'
       + '</div><div class="railx"><span style="left:0">1기</span>'
       + '<span style="left:32.5%">2기</span><span style="left:67.5%">3기</span>'
       + '<span class="r">40주</span></div></div>';
     h += '<p class="callegend"><b>황록 숫자</b>는 주차가 바뀌는 날. 점은 그 날 항목 — '
-      + '보라는 남은 것, <b>황록은 한 것</b>. <b>날짜를 누르면</b> 그 날 걸 보고 고칠 수 있어.</p>';
+      + '보라는 남은 것, <b>황록은 한 것</b>. <b>날짜를 누르면</b> 그 날 걸 보고 고칠 수 있고, '
+      + '위 막대의 진한 표시가 그 날로 움직여'
+      + (sel ? '. <b>옅은 세로선이 오늘</b>이야.' : '.') + '</p>';
     return h + dayPanel();
   }
   function dayPanel(){
@@ -800,7 +826,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (editKey){                                       /* 고치던 걸 상대가 지웠다 */
       var eNow = items()[editKey];
       if (!eNow || eNow.x){
-        editKey = null; delete drafts.ed; focusNext = null;
+        editKey = null; delete drafts.ed; delete drafts.edon; focusNext = null;
         toast('고치던 항목을 상대가 지웠어', true);
       }
     }
@@ -871,7 +897,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       b.addEventListener('click', function(){
         var k = b.dataset.edit, it = items()[k];
         if (!it) return;
-        editKey = k; drafts.ed = it.t; focusNext = 'ed';
+        editKey = k; drafts.ed = it.t; drafts.edon = dayOf(it) || ymd(today()); focusNext = 'ed';
         render();
       });
     });
@@ -879,7 +905,9 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       b.addEventListener('click', function(){ saveEdit(b.dataset.save); });
     });
     app.querySelectorAll('[data-cancel]').forEach(function(b){
-      b.addEventListener('click', function(){ editKey = null; delete drafts.ed; render(); });
+      b.addEventListener('click', function(){
+        editKey = null; delete drafts.ed; delete drafts.edon; render();
+      });
     });
     app.querySelectorAll('[data-rm]').forEach(function(b){
       b.addEventListener('click', function(){ del(b.dataset.rm); });
@@ -892,6 +920,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
         sel = (sel === b.dataset.day) ? null : b.dataset.day; editKey = null; render();
       });
     });
+    var ab = document.getElementById('addblk');
+    if (ab) ab.addEventListener('click', addBlock);
     app.querySelectorAll('[data-sug]').forEach(function(b){
       b.addEventListener('click', function(){ addSug(sugCache[+b.dataset.sug]); });
     });
@@ -918,6 +948,15 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
 
   /* ---------- 동작 : 화면을 먼저 바꾸고, 그 항목 하나만 쓴다 ---------- */
+  /* 여러 항목을 한 번에. ref.update 는 경로별로 써서 형제를 덮지 않는다.
+     항목마다 set 을 부르면 저장 지연 토스트가 개수만큼 뜬다. */
+  function wrMulti(map){
+    if (!ref || !writable) return;
+    var ok = false;
+    var t = setTimeout(function(){ if (!ok) toast('저장이 늦어. 연결을 확인해줘', true); }, 6000);
+    ref.update(map).then(function(){ ok = true; done(t); toast(''); })
+                   .catch(function(e){ ok = true; done(t); fail(e); });
+  }
   function put(k, it){
     S.items = items(); S.items[k] = it;
     render(); wr('items/' + k, it);
@@ -945,6 +984,25 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     editKey = null;
     put(newKey(), {t: v, d: false, by: 'me', at: new Date().toISOString(), on: sel || ymd(today())});
   }
+  /* 구간째 담기. 오늘이 그 구간 안이면 오늘, 미래 구간이면 구간 시작일에 놓는다.
+     이미 있는 문구는 건너뛰므로 다 담기면 버튼이 사라지고, 지운 건 다시 안 생긴다. */
+  function addBlock(){
+    var b = blockFor(viewWeek());
+    if (!b) return;
+    undoKey = null; editKey = null;
+    var w = wk().w;
+    var on = (w >= b.a && w <= b.b) ? ymd(today()) : weekStartKey(lmpDate(), b.a);
+    var have = suggestHave(), now = new Date().toISOString(), map = {}, n = 0;
+    S.items = items();
+    b.l.forEach(function(t){
+      if (have[t]) return;
+      var k = newKey(), it = {t: t, d: false, by: 'me', at: now, on: on};
+      S.items[k] = it; map['items/' + k] = it; n++;
+    });
+    if (!n) return;
+    markSeen();                 /* 내가 담은 건 나한테 새 글이 아니다 */
+    render(); wrMulti(map);
+  }
   function addSug(t){
     if (!t) return;
     undoKey = null;
@@ -961,15 +1019,21 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (!ed || !it) return;
     var v = ed.value.trim();
     if (!v){ ed.focus(); return; }
-    it.t = v; editKey = null; delete drafts.ed; focusId = null;
-    render(); wr('items/' + k + '/t', v);
+    /* 날짜도 함께 저장한다. 이게 '옮기기'다 — 지우고 다시 쓸 필요가 없다. */
+    var dn = document.getElementById('edon'), on = dn ? dn.value : '';
+    var moved = /^\d{4}-\d{2}-\d{2}$/.test(on) && on !== it.on;
+    it.t = v; if (moved) it.on = on;
+    editKey = null; delete drafts.ed; delete drafts.edon; focusId = null;
+    render();
+    wr('items/' + k + '/t', v);
+    if (moved) wr('items/' + k + '/on', on);
   }
   function del(k){
     var it = items()[k];
     if (!it) return;
     it.x = true;                       /* 지우되 없애지 않는다 — 양쪽에서 되돌릴 수 있게 */
     undoKey = k; undoText = it.t;
-    editKey = null; delete drafts.ed; focusId = null;
+    editKey = null; delete drafts.ed; delete drafts.edon; focusId = null;
     render(); wr('items/' + k + '/x', true);
   }
   function undo(k){

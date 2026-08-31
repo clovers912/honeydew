@@ -16,7 +16,7 @@ if (!m) {
   console.error('index.html 에서 @pure 블록을 찾지 못했다. 마커가 지워졌는지 확인할 것.');
   process.exit(1);
 }
-const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay'];
+const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey'];
 const F = new Function(m[0] + '\nreturn {' + api.join(',') + '};')();
 
 let pass = 0, fail = 0;
@@ -82,6 +82,21 @@ group('표기', () => {
   eq(F.fmtDay('2026-08-28'), '08.28 금', '날짜 + 요일');
   eq(F.fmtDay('2027-04-29'), '04.29 목', '예정일 요일');
   eq(F.DOW.length, 7, '요일 배열 7개');
+});
+
+group('주차 시작일 — 구간째 담을 자리', () => {
+  eq(F.weekStartKey(LMP, 0), '2026-07-23', '0주는 LMP 당일');
+  eq(F.weekStartKey(LMP, 5), '2026-08-27', '5주 시작일');
+  eq(F.weekStartKey(LMP, 8), '2026-09-17', '8주 시작일 (달을 넘김)');
+  eq(F.weekStartKey(LMP, 20), '2026-12-10', '20주 시작일');
+  eq(F.weekStartKey(LMP, 24), '2027-01-07', '24주 시작일 (해를 넘김)');
+  eq(F.weekStartKey(LMP, 40), '2027-04-29', '40주 시작일이 곧 예정일');
+  // 시작일은 반드시 그 주차의 0일째다. 어긋나면 담은 항목이 옆 주차로 샌다.
+  [5, 8, 11, 14, 20, 24, 28, 32, 36].forEach(w => {
+    const d = F.parseDay(F.weekStartKey(LMP, w));
+    eq(F.weeksFrom(LMP, d).w, w, w + '주 시작일의 주차는 ' + w);
+    eq(F.weeksFrom(LMP, d).d, 0, w + '주 시작일은 0일째');
+  });
 });
 
 console.log('');
