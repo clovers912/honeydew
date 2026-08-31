@@ -52,7 +52,9 @@ echo "막혀야 하는 것"
 check deny "짧은 방 읽기"                      GET "$SHORT.json"
 check deny "짧은 방 쓰기"                      PUT "$SHORT.json" '{"lmp":"2026-07-23","edd":"2027-04-29"}'
 check deny "rooms 전체 목록 조회"              GET "$DB/rooms.json?shallow=true"
-check deny "lmp·edd 없는 방"                   PUT "$DB/rooms/zz-nodate-aaaaaaaaaaaaaaaaaaaaaa.json" '{"items":{}}'
+# 🔴 빈 객체 {} 는 Firebase 에서 '삭제'로 취급돼 .validate 가 아예 안 돌아간다.
+# 그래서 items:{} 로는 이 규칙을 못 검사한다 — 실제 값이 든 항목을 넣어야 한다.
+check deny "lmp·edd 없는 방"                   PUT "$DB/rooms/zz-nodate-aaaaaaaaaaaaaaaaaaaaaa.json"   '{"items":{"-Z1":{"t":"x","by":"me"}}}'
 check deny "lmp 날짜 형식 위반"                PUT "$U/lmp.json" '"작년쯤"'
 check deny "by 가 wife/me 가 아님"             PUT "$U/items/-K3.json" '{"t":"x","by":"stranger"}'
 check deny "본문 없는 항목"                    PUT "$U/items/-K4.json" '{"by":"me","d":false}'
