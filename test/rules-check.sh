@@ -42,6 +42,11 @@ check ok   "본문 수정 items/-K1/t"             PUT "$U/items/-K1/t.json" '"�
 check ok   "소프트 삭제 items/-K1/x"           PUT "$U/items/-K1/x.json" 'true'
 check ok   "되돌리기 (x 제거)"                 DELETE "$U/items/-K1/x.json"
 check ok   "방 읽기"                           GET "$U.json"
+check ok   "집 주소"                             PUT "$U/home.json" '"서울 동대문구 이문로 120"'
+check ok   "장소 추가 places/-P1"                PUT "$U/places/-P1.json"   '{"n":"햇빛병원","k":"b","a":"강북구 도봉로 74","p":"1811-6161","d":3.6,"s":0,"at":"2026-08-31T00:00:00.000Z","by":"me"}'
+check ok   "상태 바꾸기 places/-P1/s"            PUT "$U/places/-P1/s.json" '3'
+check ok   "확인일 places/-P1/c"                 PUT "$U/places/-P1/c.json" '"2026-08-31"'
+check ok   "메모 지우기"                         DELETE "$U/places/-P1/m.json"
 
 echo "막혀야 하는 것"
 check deny "짧은 방 읽기"                      GET "$SHORT.json"
@@ -55,6 +60,11 @@ check deny "본문 500자 초과"                   PUT "$U/items/-K5.json" \
   "{\"t\":\"$(printf 'a%.0s' $(seq 1 501))\",\"by\":\"me\"}"
 check deny "모르는 필드 (items/-K1/evil)"      PUT "$U/items/-K1/evil.json" '"1"'
 check deny "방 최상위에 모르는 필드"           PUT "$U/hacked.json" '"1"'
+check deny "장소에 이름이 없음"                PUT "$U/places/-P2.json" '{"k":"b"}'
+check deny "장소 종류가 b/c 가 아님"           PUT "$U/places/-P3.json" '{"n":"x","k":"hospital"}'
+check deny "상태가 범위 밖 (0~4)"              PUT "$U/places/-P1/s.json" '9'
+check deny "확인일 날짜 형식 위반"             PUT "$U/places/-P1/c.json" '"어제쯤"'
+check deny "장소에 모르는 필드"                PUT "$U/places/-P1/evil.json" '"1"'
 
 curl -s -X DELETE "$U.json" >/dev/null
 echo

@@ -28,6 +28,14 @@ if (!tm) {
 }
 const T = new Function(tm[0] + '\nreturn {WEEKLY, DONT, dontFor};')();
 
+/* 병원·조리원 문구 표 */
+const pm = html.match(/var ST = \[[\s\S]*?\];[\s\S]*?var ASK = \{[\s\S]*?\n  \};/);
+if (!pm) {
+  console.error('index.html 에서 ST/ASK 를 찾지 못했다.');
+  process.exit(1);
+}
+const P = new Function(pm[0] + '\nreturn {ST, ASK};')();
+
 let pass = 0, fail = 0;
 function eq(actual, expected, what) {
   const a = JSON.stringify(actual), b = JSON.stringify(expected);
@@ -123,6 +131,20 @@ group('하지 말 것 — 주차마다 빈 칸이 없어야 한다', () => {
   eq(T.dontFor(45), null, '45주는 범위 밖');
   eq(T.dontFor(44), T.dontFor(36), '36~44주는 한 구간');
   eq(new Set(T.DONT.map(d => d.t)).size, 9, '아홉 문구가 서로 다르다');
+});
+
+group('병원 · 조리원', () => {
+  eq(P.ST.length, 5, '상태 5단계');
+  eq(P.ST[0], '미확인', '처음은 미확인 — 확인 안 한 것이 확인된 것처럼 보이면 안 된다');
+  eq(new Set(P.ST).size, 5, '상태 이름이 서로 다르다');
+  // 상태는 눌러서 도는데, 한 바퀴 뒤 제자리로 와야 한다.
+  let s = 0;
+  for (let i = 0; i < P.ST.length; i++) s = (s + 1) % P.ST.length;
+  eq(s, 0, '한 바퀴 돌면 처음으로');
+  // 종류마다 물어볼 것이 있어야 한다. 없으면 그 탭에서 목록이 빈 채로 열린다.
+  eq(Object.keys(P.ASK).sort(), ['b', 'c'], '분만·조리원 두 종류');
+  eq(P.ASK.b.length > 0 && P.ASK.c.length > 0, true, '양쪽 다 비어 있지 않다');
+  eq(P.ASK.b.some(t => t.includes('분만실')), true, '분만은 분만실 운영부터 묻는다');
 });
 
 console.log('');

@@ -8,6 +8,7 @@
 
         "lmp":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
         "edd":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+        "home":  { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200" },
 
         "items": {
           "$id": {
@@ -18,6 +19,24 @@
             "x":  { ".validate": "newData.isBoolean()" },
             "at": { ".validate": "newData.isString() && newData.val().length <= 40" },
             "on": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "places": {
+          "$id": {
+            ".validate": "newData.hasChildren(['n','k'])",
+            "n": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100" },
+            "k": { ".validate": "newData.isString() && (newData.val() === 'b' || newData.val() === 'c')" },
+            "a": { ".validate": "newData.isString() && newData.val().length <= 200" },
+            "p": { ".validate": "newData.isString() && newData.val().length <= 30" },
+            "d": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+            "s": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4" },
+            "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+            "m": { ".validate": "newData.isString() && newData.val().length <= 500" },
+            "x": { ".validate": "newData.isBoolean()" },
+            "at": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "by": { ".validate": "newData.isString() && (newData.val() === 'wife' || newData.val() === 'me')" },
             "$other": { ".validate": false }
           }
         },
