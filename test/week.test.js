@@ -36,6 +36,15 @@ if (!pm) {
 }
 const P = new Function(pm[0] + '\nreturn {ST, ASK};')();
 
+/* 추천 표 — 행정 항목이 여기 산다. 문구가 바뀌면 이미 담은 항목과 짝이 안 맞아
+   추천이 다시 뜬다(suggestHave 가 문구로 비교한다). 그래서 문구 자체를 검사한다. */
+const sm = html.match(/var SUGGEST = \[[\s\S]*?\n  \];/);
+if (!sm) {
+  console.error('index.html 에서 SUGGEST 를 찾지 못했다.');
+  process.exit(1);
+}
+const G = new Function(sm[0] + '\nreturn {SUGGEST};')();
+
 let pass = 0, fail = 0;
 function eq(actual, expected, what) {
   const a = JSON.stringify(actual), b = JSON.stringify(expected);
@@ -148,5 +157,93 @@ group('병원 · 조리원', () => {
 });
 
 console.log('');
+group('추천 — 구조', () => {
+  eq(G.SUGGEST.length, 9, '구간 9개');
+  const all = [];
+  G.SUGGEST.forEach(b => b.l.forEach(s => all.push(s)));
+  eq(all.every(s => s && typeof s === 'object' && !Array.isArray(s)),
+     true, '항목은 전부 객체다 (문자열이면 담을 때 t 가 undefined 가 된다)');
+  eq(all.every(s => typeof s.t === 'string' && s.t.length > 0),
+     true, '항목마다 문구 t 가 있다');
+  eq(new Set(all.map(s => s.t)).size, all.length,
+     '문구가 전부 다르다 — 겹치면 한쪽을 담았을 때 다른 쪽도 사라진다');
+});
+
+group('추천 — 마감 주차 w', () => {
+  // w 는 '이 항목의 기한이 걸린 주차'다. 구간 밖으로 새면 담은 항목이
+  // 엉뚱한 달의 달력에 붙는다. 에러가 안 나고 날짜만 틀린다.
+  G.SUGGEST.forEach(b => b.l.forEach(s => {
+    if (s.w === undefined) return;
+    eq(Number.isInteger(s.w), true, '[' + s.t + '] w 는 정수');
+    eq(s.w >= b.a && s.w <= b.b, true,
+       '[' + s.t + '] w=' + s.w + ' 가 구간 ' + b.a + '~' + b.b + ' 안에 있다');
+  }));
+  // w 가 실제로 달력의 어느 날이 되는지. 이 변환이 틀리면 전부 하루씩 밀린다.
+  eq(F.weekStartKey(LMP, 6), '2026-09-03', '6주 마감 = 2026-09-03');
+  eq(F.weekStartKey(LMP, 12), '2026-10-15', '12주 마감 = 2026-10-15 (엽산·단축근무 창이 닫히는 주)');
+});
+
+group('추천 — 행정 항목은 출처를 갖는다', () => {
+  // 🔴 지어낸 제도를 넣지 않기 위한 게이트다. src 가 없으면 그 항목은
+  // 근거 없이 들어온 것이고, 위키 규칙으로 치면 출처 없는 숫자와 같다.
+  const dated = [];
+  G.SUGGEST.forEach(b => b.l.forEach(s => { if (s.w !== undefined) dated.push(s); }));
+  eq(dated.length > 0, true, '마감이 걸린 항목이 하나 이상 있다');
+  eq(dated.every(s => typeof s.src === 'string' && s.src.length > 0),
+     true, '마감이 걸린 항목은 전부 출처 src 가 있다');
+});
+
+group('🔴 추천 — 이미 담긴 문구는 바꾸지 않는다', () => {
+  // suggestHave() 는 문구를 통째로 비교한다. 문구를 한 글자만 고쳐도
+  // 이미 담아 둔 항목과 짝이 안 맞아 추천 칩이 되살아난다 — 지운 것도 되살아난다.
+  // 아래는 실제 방(2026-09-01 실측)에 담겨 있는, 추천에서 나온 문구다.
+  // 다듬고 싶으면 문구를 바꾸는 게 아니라 새 항목을 추가할 것.
+  const all = [];
+  G.SUGGEST.forEach(b => b.l.forEach(s => all.push(s.t)));
+  [
+    '산부인과 다음 예약 같이 잡기',
+    '임신확인서 받으면 바로 사진 찍어두기',
+    '냉장고에서 냄새나는 것 치우기',
+    '무거운 건 내가 들기'
+  ].forEach(t => eq(all.includes(t), true, '["' + t + '"] 가 그대로 있다'));
+});
+
+group('추천 — 마감이 달력의 어느 날이 되는가', () => {
+  // 이 표가 곧 화면이다. 여기서 하루라도 밀리면 기한이 거짓으로 표시되고,
+  // 예외는 안 난다. 그래서 실제로 찍힐 날짜를 값으로 박아 둔다.
+  const on = {};
+  G.SUGGEST.forEach(b => b.l.forEach(s => {
+    if (s.w !== undefined) on[s.t] = F.weekStartKey(LMP, s.w);
+  }));
+  eq(on['국민행복카드 신청 — 진료비 100만원, 출산 전 아무 때나'], '2026-09-03', '국민행복카드 = 6주');
+  eq(on['임신기 근로시간 단축 — 12주까지 하루 2시간, 임금 그대로'], '2026-10-01', '단축근무 = 10주 (창은 12주에 닫힌다)');
+  eq(on['배우자 출산휴가 20일 — 유급, 출산일부터 120일 안에, 3회 분할'], '2027-02-18', '배우자 출산휴가 = 30주');
+  eq(on['출생신고 + 첫만남이용권 한 번에 (행복출산 원스톱)'], '2027-04-29', '출생신고 = 40주 = 예정일');
+  // 마감일은 전부 실제 달력 날짜여야 한다. 하나라도 깨지면 그 항목이 달력에서 사라진다.
+  Object.keys(on).forEach(t => {
+    eq(/^\d{4}-\d{2}-\d{2}$/.test(on[t]), true, '[' + t.slice(0, 14) + '…] 날짜 형식');
+    eq(F.ymd(F.parseDay(on[t])), on[t], '[' + t.slice(0, 14) + '…] 파싱해도 같은 날');
+  });
+});
+
+group('🔴 공개 저장소 — 소스에 사는 곳과 회사가 없다', () => {
+  // 이 저장소는 공개다. 지자체·회사 항목을 소스에 넣으면 거주지와 직장이 공개된다.
+  // 🔴 금지어를 여기 적으면 안 된다 — 목록 자체가 사는 곳을 말해 버린다.
+  //    (첫 판이 정확히 그랬다.) 그래서 개별 이름이 아니라 '부류'로 검사한다.
+  const SI = '서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주';
+  const GU = '종로|중구|용산|성동|광진|동대문|중랑|성북|강북|도봉|노원|은평|서대문|마포'
+           + '|양천|강서|구로|금천|영등포|동작|관악|서초|강남|송파|강동';
+  [
+    [new RegExp('(' + SI + ')(시|특별시|광역시|도)'), '광역시·도 이름'],
+    [new RegExp('(' + GU + ')구'),                     '자치구 이름'],
+    // 동·읍·면은 검사하지 않는다 — 한국어 산문과 구분이 안 된다("있으면" 이 걸렸다).
+    // 주소가 새면 거의 항상 구·보건소·주민센터가 같이 붙으므로 나머지가 잡는다.
+    [/0d{1,2}-d{3,4}-d{4}/,                        '전화번호'],
+    [/보건소|주민센터|구청/,                             '관공서 이름']
+  ].forEach(([re, what]) => {
+    const hit = html.match(re);
+    eq(hit ? hit[0] : null, null, '소스에 ' + what + ' 가 없다');
+  });
+});
 if (fail) { console.error('실패 ' + fail + ' / 통과 ' + pass); process.exit(1); }
 console.log('통과 ' + pass + '개. 전부 성공.');

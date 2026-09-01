@@ -571,17 +571,89 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     40: "예정일 주간. 예정일에 딱 맞춰 낳는 사람은 오히려 드물대."
   };
   /* 주차 구간별 추천 — 서류·일정·집안일·관계만. 의료 지시는 넣지 않는다.
-     ⚠️ 이건 내가 쓴 일반론이고 검증된 목록이 아니다. 아내 답변이 오면 갈아엎을 것. */
+
+     항목은 객체다: {t:문구, w:마감주차?, src:출처?}
+     - w 가 있으면 담을 때 그 주 시작일이 `on` 이 된다 → 달력에 그 날 점이 찍힌다.
+       없으면 지금 보고 있는 날(또는 구간 시작일)에 붙는다. 집안일·관계가 그쪽이다.
+     - 🔴 w 가 있는 항목은 src 가 반드시 있다. 제도를 지어내지 않기 위한 게이트이고
+       테스트가 이걸 강제한다. 출처를 못 찾은 제도는 넣지 않는다.
+
+     🔴 여기 있는 것은 전국 공통 법·제도뿐이다. 지자체 지원금과 회사 제출물은
+     사는 곳과 직장이 드러나므로 소스에 넣지 않는다 — Firebase 항목으로만 넣는다.
+     이 저장소는 공개다 (예정일조차 소스에 없다).
+
+     ⚠️ 집안일·관계 문구는 여전히 내가 쓴 일반론이고 검증된 목록이 아니다.
+     제도 항목만 1차 출처로 확인했다. */
   var SUGGEST = [
-    {a:5,  b:7,  l:["산부인과 다음 예약 같이 잡기","임신확인서 받으면 바로 사진 찍어두기","냉장고에서 냄새나는 것 치우기","무거운 건 내가 들기"]},
-    {a:8,  b:10, l:["국민행복카드 신청하기","맘편한임신 원스톱 서비스 알아보기","먹을 수 있는 것 몇 개 상비해두기","밤에 냄새 안 나게 설거지 미리 하기"]},
-    {a:11, b:13, l:["회사에 언제 알릴지 같이 정하기","검사 일정 캘린더에 넣기","배 나오기 전 사진 한 장 남기기","입덧 끝나면 먹고 싶다던 것 기억해두기"]},
-    {a:14, b:19, l:["정밀 초음파 같이 가기","임부복·속옷 같이 사러 가기","태동 느껴지면 같이 손 대보기","둘이 갈 만한 데 한 번 다녀오기"]},
-    {a:20, b:23, l:["아기 이름 후보 같이 적어보기","출산 준비물 목록 만들기","산후조리원 알아보기","다리 부으면 주물러주기"]},
-    {a:24, b:27, l:["당뇨 검사일 확인하기 (금식 있음)","카시트·침대 같은 큰 것부터 정하기","장 보는 건 내가 하기","잘 때 쿠션 챙겨주기"]},
-    {a:28, b:31, l:["출산휴가·육아휴직 회사에 확인하기","출산 가방 목록 만들기","병원 가는 길·주차 미리 확인하기","양말 신는 것 도와주기"]},
-    {a:32, b:35, l:["출산 가방 실제로 싸기","산후조리원 예약 확정하기","아기 옷 미리 세탁해두기","진통 시 연락 순서 정해두기"]},
-    {a:36, b:44, l:["가방을 차에 실어두기","밤에도 연락 받을 수 있게 해두기","병원 연락처 저장하기","그냥 옆에 있어주기"]}
+    {a:5,  b:7,  l:[
+      {t:"국민행복카드 신청 — 진료비 100만원, 출산 전 아무 때나", w:6,
+       src:"국민건강보험법 시행령 23조 · voucher.go.kr"},
+      {t:"맘편한임신 원스톱 신청 (정부24) — 임신확인서 나오면 바로", w:6,
+       src:"정부24 맘편한임신 통합처리신청"},
+      {t:"임신확인서 받으면 바로 사진 찍어두기"},
+      {t:"산부인과 다음 예약 같이 잡기"},
+      {t:"냉장고에서 냄새나는 것 치우기"},
+      {t:"무거운 건 내가 들기"}
+    ]},
+    {a:8,  b:10, l:[
+      {t:"임신기 근로시간 단축 — 12주까지 하루 2시간, 임금 그대로", w:10,
+       src:"근로기준법 74조7항 (2025.2.23 개정: 12주 이내 / 32주 이후)"},
+      {t:"단축근무는 시작 3일 전까지 신청서 제출", w:10,
+       src:"근로기준법 시행령 43조의2"},
+      {t:"먹을 수 있는 것 몇 개 상비해두기"},
+      {t:"밤에 냄새 안 나게 설거지 미리 하기"}
+    ]},
+    {a:11, b:13, l:[
+      {t:"회사에 언제 알릴지 같이 정하기"},
+      {t:"검사 일정 캘린더에 넣기"},
+      {t:"배 나오기 전 사진 한 장 남기기"},
+      {t:"입덧 끝나면 먹고 싶다던 것 기억해두기"}
+    ]},
+    {a:14, b:19, l:[
+      {t:"정밀 초음파 같이 가기"},
+      {t:"임부복·속옷 같이 사러 가기"},
+      {t:"태동 느껴지면 같이 손 대보기"},
+      {t:"둘이 갈 만한 데 한 번 다녀오기"}
+    ]},
+    {a:20, b:23, l:[
+      {t:"아기 이름 후보 같이 적어보기"},
+      {t:"출산 준비물 목록 만들기"},
+      {t:"산후조리원 알아보기"},
+      {t:"다리 부으면 주물러주기"}
+    ]},
+    {a:24, b:27, l:[
+      {t:"당뇨 검사일 확인하기 (금식 있음)"},
+      {t:"카시트·침대 같은 큰 것부터 정하기"},
+      {t:"장 보는 건 내가 하기"},
+      {t:"잘 때 쿠션 챙겨주기"}
+    ]},
+    {a:28, b:31, l:[
+      {t:"출산휴가 90일 회사에 확인 — 출산 후 45일 이상 남겨야 한다", w:28,
+       src:"근로기준법 74조"},
+      {t:"배우자 출산휴가 20일 — 유급, 출산일부터 120일 안에, 3회 분할", w:30,
+       src:"남녀고용평등법 18조의2 (2025.2.23 시행, 10일→20일)"},
+      {t:"육아휴직은 시작 30일 전까지 신청", w:31,
+       src:"남녀고용평등법 19조"},
+      {t:"출산 가방 목록 만들기"},
+      {t:"병원 가는 길·주차 미리 확인하기"},
+      {t:"양말 신는 것 도와주기"}
+    ]},
+    {a:32, b:35, l:[
+      {t:"근로시간 단축 다시 가능 — 32주부터 하루 2시간", w:32,
+       src:"근로기준법 74조7항"},
+      {t:"출산 가방 실제로 싸기"},
+      {t:"산후조리원 예약 확정하기"},
+      {t:"아기 옷 미리 세탁해두기"},
+      {t:"진통 시 연락 순서 정해두기"}
+    ]},
+    {a:36, b:44, l:[
+      {t:"출생신고 + 첫만남이용권 한 번에 (행복출산 원스톱)", w:40,
+       src:"정부24 행복출산 원스톱서비스"},
+      {t:"가방을 차에 실어두기"},
+      {t:"밤에도 연락 받을 수 있게 해두기"},
+      {t:"병원 연락처 저장하기"},
+      {t:"그냥 옆에 있어주기"}
+    ]}
   ];
 
   /* 하지 말 것 — 구간마다 하나. SUGGEST 와 같은 구간을 쓴다.
@@ -781,7 +853,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     }
     if (!editKey){
       var have = suggestHave();
-      var sug = suggestFor(vw).filter(function(t){ return !have[t]; });
+      var sug = suggestFor(vw).filter(function(s){ return !have[s.t]; });
       if (sug.length){
         var blk = blockFor(vw);
         h += '<p class="sugh"><span>보통 이 즈음 하는 것들 — 누르면 담겨</span>'
@@ -789,8 +861,10 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
              ? '<button class="mini" type="button" id="addblk">'
                + blk.a + '~' + blk.b + '주 ' + sug.length + '개 담기</button>' : '')
           + '</p><div class="sug">';
-        sug.forEach(function(t, k){
-          h += '<button type="button" data-sug="' + k + '">' + esc(t) + '</button>';
+        sug.forEach(function(s, k){
+          h += '<button type="button" data-sug="' + k + '"'
+            + (s.src ? ' title="' + esc(s.src) + '"' : '')
+            + '>' + esc(s.t) + '</button>';
         });
         h += '</div>';
         sugCache = sug;
@@ -1224,29 +1298,40 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     editKey = null;
     put(newKey(), {t: v, d: false, by: 'me', at: new Date().toISOString(), on: sel || ymd(today())});
   }
-  /* 구간째 담기. 오늘이 그 구간 안이면 오늘, 미래 구간이면 구간 시작일에 놓는다.
-     이미 있는 문구는 건너뛰므로 다 담기면 버튼이 사라지고, 지운 건 다시 안 생긴다. */
+  /* 담을 때 붙는 날짜.
+     🔴 마감이 있는 제도(w)는 그 마감 주에 붙인다 — 담은 날이 아니다.
+     그러지 않으면 12주에 닫히는 것이 8주에 찍혀, 달력이 기한을 거짓으로 말한다.
+     w 가 없는 것(집안일·관계)은 종전대로 지금 보고 있는 자리에 붙는다. */
+  function sugOn(s, b){
+    if (s.w !== undefined) return weekStartKey(lmpDate(), s.w);
+    if (b){
+      var w = wk().w;
+      return (w >= b.a && w <= b.b) ? ymd(today()) : weekStartKey(lmpDate(), b.a);
+    }
+    return sel || ymd(today());
+  }
+  /* 구간째 담기. 이미 있는 문구는 건너뛰므로 다 담기면 버튼이 사라지고,
+     지운 건 다시 안 생긴다. */
   function addBlock(){
     var b = blockFor(viewWeek());
     if (!b) return;
     undoKey = null; editKey = null;
-    var w = wk().w;
-    var on = (w >= b.a && w <= b.b) ? ymd(today()) : weekStartKey(lmpDate(), b.a);
     var have = suggestHave(), now = new Date().toISOString(), map = {}, n = 0;
     S.items = items();
-    b.l.forEach(function(t){
-      if (have[t]) return;
-      var k = newKey(), it = {t: t, d: false, by: 'me', at: now, on: on};
+    b.l.forEach(function(s){
+      if (have[s.t]) return;
+      var k = newKey(), it = {t: s.t, d: false, by: 'me', at: now, on: sugOn(s, b)};
       S.items[k] = it; map['items/' + k] = it; n++;
     });
     if (!n) return;
     markSeen();                 /* 내가 담은 건 나한테 새 글이 아니다 */
     render(); wrMulti(map);
   }
-  function addSug(t){
-    if (!t) return;
+  function addSug(s){
+    if (!s || !s.t) return;
     undoKey = null;
-    put(newKey(), {t: t, d: false, by: 'me', at: new Date().toISOString(), on: sel || ymd(today())});
+    put(newKey(), {t: s.t, d: false, by: 'me', at: new Date().toISOString(),
+                   on: sugOn(s, blockFor(viewWeek()))});
   }
   function toggle(k){
     var it = items()[k];
