@@ -16,7 +16,7 @@ if (!m) {
   console.error('index.html 에서 @pure 블록을 찾지 못했다. 마커가 지워졌는지 확인할 것.');
   process.exit(1);
 }
-const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey'];
+const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey','growthStops'];
 const F = new Function(m[0] + '\nreturn {' + api.join(',') + '};')();
 
 /* 화면 문구 표 — 주차마다 빠진 칸이 있으면 그 주에 상자가 통째로 사라진다.
@@ -245,5 +245,36 @@ group('🔴 공개 저장소 — 소스에 사는 곳과 회사가 없다', () =
     eq(hit ? hit[0] : null, null, '소스에 ' + what + ' 가 없다');
   });
 });
+/* 성장 경로 — 마스코트를 누르면 펼쳐지는 칸들.
+   틀려도 예외가 안 나고 "칸이 하나 빠진 화면"으로만 나타나므로 눈으로는 안 잡힌다. */
+group('성장 경로', () => {
+  const D = k => F.parseDay(k);
+
+  /* 2026-12-13 = LMP+143일 = 20주 3일. 20 은 고정 칸이라 칸이 늘지 않는다 */
+  const s = F.growthStops(LMP, D('2026-12-13'));
+  eq(s.map(x => x.w), [5,12,20,28,36,40],   '현재 주차가 고정 칸이면 칸이 늘지 않는다');
+  eq(s.filter(x => x.now).map(x => x.w),  [20],    '지금 칸은 현재 주차 하나뿐');
+  eq(s.filter(x => x.past).map(x => x.w), [5,12],  '지나온 칸은 현재 주차 앞의 것뿐');
+  eq(s.filter(x => x.last).map(x => x.w), [40],    '마지막 칸은 40주 하나');
+  eq(s[0].key, '2026-08-27',                       '5주 칸의 날짜는 5주 0일 (LMP+35)');
+  eq(s[5].key, F.ymd(EDD),                         '40주 칸의 날짜는 예정일');
+
+  /* 2026-12-24 = LMP+154일 = 22주 0일. 고정 칸이 아니라 사이에 끼어든다 */
+  const t = F.growthStops(LMP, D('2026-12-24'));
+  eq(t.map(x => x.w), [5,12,20,22,28,36,40], '현재 주차가 고정 칸이 아니면 제 자리에 끼어든다');
+  eq(t.filter(x => x.now).map(x => x.w), [22],      '끼어든 칸이 지금 칸');
+
+  /* 2026-08-06 = LMP+14일 = 2주 0일. 첫 고정 칸(5주)보다 앞이다 */
+  const e = F.growthStops(LMP, D('2026-08-06'));
+  eq(e.map(x => x.w), [2,5,12,20,28,36,40],  '5주 이전이면 현재 주차가 맨 앞에 온다');
+  eq(e.filter(x => x.past).length, 0,               '맨 앞이면 지나온 칸이 없다');
+
+  /* 2027-05-06 = LMP+287일 = 41주. 예정일이 지난 경우 */
+  const o = F.growthStops(LMP, D('2027-05-06'));
+  eq(o.map(x => x.w), [5,12,20,28,36,40],    '예정일이 지나도 40주 뒤에 칸을 만들지 않는다');
+  eq(o.filter(x => x.now).map(x => x.w),  [40],              '예정일이 지나면 40주가 지금 칸');
+  eq(o.filter(x => x.past).map(x => x.w), [5,12,20,28,36],   '40주 앞은 전부 지나온 칸');
+});
+
 if (fail) { console.error('실패 ' + fail + ' / 통과 ' + pass); process.exit(1); }
 console.log('통과 ' + pass + '개. 전부 성공.');

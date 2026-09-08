@@ -63,6 +63,23 @@ body{
 @keyframes sway{0%,100%{transform:rotate(-3.2deg)}50%{transform:rotate(3.2deg)}}
 .mascot.awake{animation:sway 3.4s ease-in-out infinite;transform-origin:70% 85%}
 
+/* 성장 경로 — 마스코트를 누르면 펼쳐진다 */
+.grow-t{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;
+  margin:0;cursor:pointer;border-radius:50%;line-height:0}
+.grow-t:focus-visible{outline:2px solid var(--honey);outline-offset:4px}
+.grow{position:relative;display:flex;gap:15px;overflow-x:auto;padding:4px 0 2px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.grow::-webkit-scrollbar{display:none}
+.gs{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:1px;opacity:.9}
+.gs.past{opacity:.38}
+.gs b{font-family:var(--display);font-weight:600;font-size:13px;line-height:1.4}
+.gs time{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.03em}
+.gs i{font-style:normal;font-family:var(--sans);font-size:10px;color:var(--plum);letter-spacing:.04em}
+.gs.now b{color:var(--plum)}
+/* 36주에 아기가 멜론을 채우므로 40주 그림은 36주와 같다. 그림으로는 갈리지 않으니
+   달력이 예정일 칸에 쓰는 색(.cell.edd)을 그대로 빌려 마지막 칸을 구분한다. */
+.gs.last b,.gs.last time{color:var(--apricot)}
+
 /* 말풍선 */
 .bubble{position:relative;background:var(--bubble);border:1px solid var(--plum-dim);
   border-radius:16px;padding:16px 17px 15px;margin-top:-13px;display:flex;flex-direction:column;gap:12px}
@@ -374,7 +391,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   var app = document.getElementById('app');
   var toastEl = document.getElementById('toast');
   var S = null, ref = null, writable = true, ready = false, online = true;
-  var view = null, sel = null, editKey = null, expanded = false, showTrash = false;
+  var view = null, sel = null, editKey = null, expanded = false, showTrash = false, growOpen = false;
   var undoKey = null, undoText = '', sugCache = [];
   var gateMode = 'lmp', gateDate = '';
   var INPUTS = ['inp','minp','dinp','ed','edon','pinp'];
@@ -403,6 +420,18 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
   /* 주차 w 가 시작하는 날. 구간째 담을 때 어디에 놓을지 정하는 데 쓴다. */
   function weekStartKey(lmp, w){ return ymd(addDays(lmp, w * 7)); }
+  /* 성장 경로의 칸들. 고정 6칸에 현재 주차를 제 자리에 끼워 넣는다.
+     40 을 넘기지 않는 이유: 예정일 뒤에 칸을 만들면 경로가 끝나지 않는 것처럼 보인다. */
+  var GROWTH = [5, 12, 20, 28, 36, 40];
+  function growthStops(lmp, day){
+    var cw = Math.max(0, Math.min(40, weeksFrom(lmp, day).w));
+    var ws = GROWTH.slice();
+    if (ws.indexOf(cw) < 0) ws.push(cw);
+    ws.sort(function(a, b){ return a - b; });
+    return ws.map(function(w){
+      return { w: w, key: weekStartKey(lmp, w), now: w === cw, past: w < cw, last: w === 40 };
+    });
+  }
   /* @pure:end */
 
   function today(){ return midnight(new Date()); }
@@ -523,6 +552,24 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + '<path d="M70 26C40 43 40 109 70 126" stroke="var(--rind)" stroke-width="1.3" opacity=".55"/>'
       + '<path d="M70 26c30 17 30 83 0 100" stroke="var(--rind)" stroke-width="1.3" opacity=".55"/>'
       + baby + face + '</svg>';
+  }
+  /* 앞으로 이렇게 자란다. 멜론은 고정이고 안의 아기만 큰다 — 마스코트 규칙 그대로다.
+     미래 칸은 전부 자는 얼굴이다. 깬 눈은 "지금 요청이 와 있다"는 신호라
+     미래 칸에 넣으면 뜻이 흐려진다. */
+  function growthPath(){
+    if (!growOpen) return '';
+    var h = '<div class="grow" id="grow">';
+    growthStops(lmpDate(), today()).forEach(function(s){
+      h += '<div class="gs' + (s.now ? ' now' : '') + (s.past ? ' past' : '')
+         + (s.last ? ' last' : '') + '"'
+         + (s.now ? ' id="gs-now"' : '') + '>'
+         + mascot(56, s.w, false)
+         + '<b>' + s.w + '주</b>'
+         + '<time>' + (s.last ? '예정일' : fmtDay(s.key).slice(0, 5)) + '</time>'
+         + (s.now ? '<i>지금</i>' : '')
+         + '</div>';
+    });
+    return h + '</div>';
   }
   function markSmall(){
     return '<svg width="24" height="24" viewBox="0 0 140 140" fill="none" aria-hidden="true">'
@@ -1136,10 +1183,13 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       h += '<div class="undo"><span>지웠어</span><b>' + esc(undoText) + '</b>'
         + '<button type="button" id="undo">되돌리기</button></div>';
     }
-    h += '<div class="hero">' + mascot(96, W.w, awake)
+    h += '<div class="hero">'
+       + '<button type="button" class="grow-t" id="growt" aria-expanded="' + growOpen + '"'
+       + ' aria-label="허니듀가 어떻게 자라는지 보기">' + mascot(96, W.w, awake) + '</button>'
        + '<div class="txt"><span class="wk">' + W.w + '주 ' + W.d + '일</span>'
        + '<span class="dday">D-' + D + '</span>'
        + '<span class="edd">예정일 ' + S.edd.replace(/-/g,'.') + '</span></div></div>';
+    h += growthPath();
     h += board();
     h += '<div class="card">' + calendar() + '</div>';
     var vw = viewWeek(), vnote = WEEKLY[vw], dnote = dontFor(vw);
@@ -1241,6 +1291,11 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (bt) bt.addEventListener('click', function(){ sel = null; editKey = null; render(); });
     var mo = document.getElementById('more');
     if (mo) mo.addEventListener('click', function(){ expanded = !expanded; render(); });
+    var gt = document.getElementById('growt');
+    if (gt) gt.addEventListener('click', function(){ growOpen = !growOpen; render(); });
+    /* 현재 칸을 화면 안으로. 애니메이션 없이 위치만 맞춘다 — 움직이는 것은 마스코트뿐이다. */
+    var gn = document.getElementById('gs-now');
+    if (gn) gn.parentNode.scrollLeft = Math.max(0, gn.offsetLeft - 12);
     var x = document.getElementById('dayx');
     if (x) x.addEventListener('click', function(){ sel = null; editKey = null; render(); });
     var p = document.getElementById('prev'), nx = document.getElementById('next');
