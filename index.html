@@ -67,10 +67,12 @@ body{
 .grow-t{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;
   margin:0;cursor:pointer;border-radius:50%;line-height:0}
 .grow-t:focus-visible{outline:2px solid var(--honey);outline-offset:4px}
-.grow{position:relative;display:flex;gap:15px;overflow-x:auto;padding:4px 0 2px;
-  scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.grow::-webkit-scrollbar{display:none}
-.gs{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:1px;opacity:.9}
+/* 가로 스크롤이 없다. 칸이 최대 다섯이라(growthStops) 폭을 나눠 가지면 늘 들어간다 */
+.grow{display:flex;gap:8px;padding:4px 0 2px}
+.gs{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;opacity:.9}
+/* 칸 폭을 그대로 채운다. 상한을 두면 넓은 폰에서 오른쪽에 빈 자리가 남아 "딱 맞음"이 깨진다.
+   폭이 좁아지면 같이 줄어드므로 어느 폰에서도 한 줄에 들어간다. */
+.grow .mascot{width:100%;height:auto}
 .gs.past{opacity:.38}
 .gs b{font-family:var(--display);font-weight:600;font-size:13px;line-height:1.4}
 .gs time{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.03em}
@@ -420,9 +422,12 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
   /* 주차 w 가 시작하는 날. 구간째 담을 때 어디에 놓을지 정하는 데 쓴다. */
   function weekStartKey(lmp, w){ return ymd(addDays(lmp, w * 7)); }
-  /* 성장 경로의 칸들. 고정 6칸에 현재 주차를 제 자리에 끼워 넣는다.
+  /* 성장 경로의 칸들. 고정 4칸에 현재 주차를 제 자리에 끼워 넣는다 — 최대 다섯 칸이고,
+     그래야 가로 스크롤 없이 폰 너비(좁으면 316px)에 들어간다.
+     5 를 뺀 이유: 점 하나라 성장이 안 읽힌다. 36 을 뺀 이유: 곡선이 36주에 차서
+     40주와 아기 반지름이 r=19 로 같다 — 그림으로 갈리지 않는 칸이었다.
      40 을 넘기지 않는 이유: 예정일 뒤에 칸을 만들면 경로가 끝나지 않는 것처럼 보인다. */
-  var GROWTH = [5, 12, 20, 28, 36, 40];
+  var GROWTH = [12, 20, 28, 40];
   function growthStops(lmp, day){
     var cw = Math.max(0, Math.min(40, weeksFrom(lmp, day).w));
     var ws = GROWTH.slice();
@@ -561,9 +566,8 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     var h = '<div class="grow" id="grow">';
     growthStops(lmpDate(), today()).forEach(function(s){
       h += '<div class="gs' + (s.now ? ' now' : '') + (s.past ? ' past' : '')
-         + (s.last ? ' last' : '') + '"'
-         + (s.now ? ' id="gs-now"' : '') + '>'
-         + mascot(56, s.w, false)
+         + (s.last ? ' last' : '') + '">'
+         + mascot(76, s.w, false)
          + '<b>' + s.w + '주</b>'
          + '<time>' + (s.last ? '예정일' : fmtDay(s.key).slice(0, 5)) + '</time>'
          + (s.now ? '<i>지금</i>' : '')
@@ -1293,9 +1297,6 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     if (mo) mo.addEventListener('click', function(){ expanded = !expanded; render(); });
     var gt = document.getElementById('growt');
     if (gt) gt.addEventListener('click', function(){ growOpen = !growOpen; render(); });
-    /* 현재 칸을 화면 안으로. 애니메이션 없이 위치만 맞춘다 — 움직이는 것은 마스코트뿐이다. */
-    var gn = document.getElementById('gs-now');
-    if (gn) gn.parentNode.scrollLeft = Math.max(0, gn.offsetLeft - 12);
     var x = document.getElementById('dayx');
     if (x) x.addEventListener('click', function(){ sel = null; editKey = null; render(); });
     var p = document.getElementById('prev'), nx = document.getElementById('next');
