@@ -282,5 +282,15 @@ group('성장 경로', () => {
   eq(o.filter(x => x.past).map(x => x.w), [12,20,28],     '40주 앞은 전부 지나온 칸');
 });
 
+/* 작성자 라벨 — 붙는 자리가 둘이다(말풍선·병원카드).
+   🔴 한 곳만 고치면 카드마다 다른 말이 뜨는데, 둘을 나란히 볼 일이 없어 눈으로는 안 잡힌다. */
+group('작성자 라벨', () => {
+  const dad = html.match(/me">아빠/g) || [];
+  const me  = html.match(/me">나/g) || [];
+  eq(dad.length, 2, '아빠 라벨이 두 자리 모두에 있다');
+  eq(me.length, 0,  '옛 라벨 나 가 남아 있지 않다');
+  eq((html.match(/wife">엄마/g) || []).length, 2, '엄마 라벨도 같은 두 자리');
+});
+
 if (fail) { console.error('실패 ' + fail + ' / 통과 ' + pass); process.exit(1); }
 console.log('통과 ' + pass + '개. 전부 성공.');

@@ -834,7 +834,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + '<button class="chk" type="button" data-req="' + k + '" aria-label="'
       + (it.d ? '완료 취소' : '완료 표시') + '"><span></span></button>'
       + '<span class="txt"><button class="lab" type="button" data-edit="' + k + '">'
-      + (showWho ? '<span class="who ' + (it.by === 'wife' ? 'wife">엄마' : 'me">나') + '</span>' : '')
+      + (showWho ? '<span class="who ' + (it.by === 'wife' ? 'wife">엄마' : 'me">아빠') + '</span>' : '')
       + esc(it.t) + '</button>'
       + (showDate && key ? '<span class="when">' + fmtDay(key) + '</span>' : '')
       + '</span>'
@@ -1146,7 +1146,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       h += '<ul class="items">';
       t.forEach(function(p){
         h += '<li class="gone"><span class="txt">'
-          + '<span class="who ' + (p[1].by === 'wife' ? 'wife">엄마' : 'me">나') + '</span>'
+          + '<span class="who ' + (p[1].by === 'wife' ? 'wife">엄마' : 'me">아빠') + '</span>'
           + esc(p[1].t) + '</span>'
           + '<button class="mini" type="button" data-undo="' + p[0] + '">되돌리기</button></li>';
       });
