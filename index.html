@@ -884,7 +884,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       if (eit && !eit.x && eit.by === 'me') rows.unshift(editKey);
     }
     var h = '<div class="card mine-c"><div class="h"><h2>'
-      + (now ? '이번 주 내가 할 일' : vw + '주에 할 일') + '</h2>'
+      + (now ? '이번 주 아빠가 할 일' : vw + '주에 할 일') + '</h2>'
       + (now ? '' : '<button class="mini" type="button" id="backtoday">이번 주로</button>')
       + '</div>';
     if (rows.length){
@@ -913,7 +913,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
         sugCache = sug;
       } else { sugCache = []; }
       h += '<div class="addrow"><textarea class="field" id="minp" rows="1" placeholder="'
-        + (now ? '내가 할 일' : vw + '주에 할 일') + '"></textarea>'
+        + (now ? '아빠가 할 일' : vw + '주에 할 일') + '"></textarea>'
         + '<button class="btn" type="button" id="madd">추가</button></div>';
     }
     return h + '</div>';
