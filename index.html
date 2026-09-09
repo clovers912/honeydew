@@ -31,6 +31,7 @@
   --apricot:#C1663C; --apricot-dim:#EFBEA3; --apricot-wash:#FDF1EA; /* 몸 */
   --teal:#2C7B78;   --teal-dim:#9BCAC7;  --teal-wash:#E8F4F3;   /* 내 할 일 */
   --on-plum:#FFFFFF; --on-plum-2:#E6D8F2; --bubble:#F4ECFB;
+  --on-apricot:#FFFFFF;   /* 살구 위 글자. 하드코딩하면 팔레트를 뒤집을 때 터진다 */
   --rind:#7E9647;
   --t1:#D9C6EC; --t2:#F0C3A6; --t3:#9CCBC8;
   --danger-bg:#FBE9EE; --danger-line:#E0A8B8; --danger-ink:#8E2F47;
@@ -160,6 +161,22 @@ body{
   display:flex;flex-direction:column;gap:13px}
 .card.body-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
 .card.body-c h2{color:var(--apricot)}
+
+/* 입덧 때 먹을 것 — 몸에 대한 카드라 '이번 주 몸'과 같은 살구를 쓴다 (의미마다 색 하나) */
+.card.food-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
+.card.food-c h2{color:var(--apricot)}
+.fl{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.fl li{display:flex;align-items:flex-start;gap:10px}
+.fst{flex:0 0 auto;appearance:none;-webkit-appearance:none;cursor:pointer;
+  font-family:var(--sans);font-size:11px;letter-spacing:.02em;line-height:1.6;
+  border:1px solid var(--apricot-dim);background:var(--surface);color:var(--ink-3);
+  border-radius:999px;padding:2px 0;width:56px;text-align:center}
+.fst.f1{background:var(--apricot);border-color:var(--apricot);color:var(--on-apricot)}
+.fst.f2{background:var(--surface-2);border-color:var(--rule);color:var(--ink-3)}
+.fst.f2 + .fb b{text-decoration:line-through;color:var(--ink-3)}
+.fb{display:flex;flex-direction:column;gap:1px;min-width:0}
+.fb b{font-weight:400;font-size:14px;line-height:1.55}
+.fm{font-family:var(--sans);font-size:11px;color:var(--ink-3);line-height:1.5}
 .card.mine-c{background:var(--teal-wash);border-color:var(--teal-dim)}
 .card.mine-c h2{color:var(--teal)}
 .card.mine-c .items li{border-top-color:var(--teal-dim)}
@@ -437,6 +454,9 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       return { w: w, key: weekStartKey(lmp, w), now: w === cw, past: w < cw, last: w === 40 };
     });
   }
+  /* 입덧 카드를 보여줄 주차. 16주까지 [사용자 결정 2026-09-09] — 더 일찍 끝나면 따로 걷는다.
+     지난 뒤에도 남으면 군더더기이고, 한창일 때 사라지면 쓸모가 없다. 경계를 테스트가 잡는다. */
+  function foodsShown(w){ return w <= 16; }
   /* @pure:end */
 
   function today(){ return midnight(new Date()); }
@@ -1000,6 +1020,78 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   }
 
 
+  /* ---------- 입덧 때 먹을 것 ----------
+     🔴 이 카드만 유일하게 건강 정보를 화면에 띄운다. 그래서 문장을 지어내지 않는다 —
+     질병관리청 국가건강정보포털 「입덧」(2026-08-13 갱신)의 생활 관리 권고에서
+     '먹는 것'에 해당하는 줄만 그대로 옮겼다. 항목마다 src 를 달고 테스트가 센다.
+     🔴 입덧은 사람마다 다르다. 그래서 목록은 출발점일 뿐이고, 되네/안되네는 아내가 정한다. */
+  var FST = ['아직', '되네', '안되네'];
+
+  var SRC = '질병관리청 국가건강정보포털 「입덧」';
+  var FOODS = [
+    {id:'dry',    t:'마른 것 — 크래커 · 말린 식품 · 고단백 스낵',
+     m:'아침에 일어나자마자', src:SRC},
+    {id:'cold',   t:'찬 음식',
+     m:'뜨거운 음식 냄새가 힘들 때', src:SRC},
+    {id:'ginger', t:'생강',
+     m:'구역이 나아졌다는 연구 보고가 있어', src:SRC},
+    {id:'drink',  t:'물 · 음료 조금씩 자주',
+     m:'하루 약 2L (30~35mL/kg)', src:SRC}
+  ];
+
+  function foodsData(){ return (S && S.foods) ? S.foods : {}; }
+  function foodState(id){ var it = foodsData()[id]; return (it && it.s) || 0; }
+  /* 아내가 덧붙인 것. 씨앗 항목은 s 만 갖고 n 이 없으므로 n 으로 갈린다. */
+  function customFoods(){
+    var o = foodsData(), out = [];
+    Object.keys(o).forEach(function(k){
+      var it = o[k];
+      if (it && it.n && !it.x) out.push([k, it]);
+    });
+    out.sort(function(a, b){ return String(a[1].at || '').localeCompare(String(b[1].at || '')); });
+    return out;
+  }
+  function foodRow(id, name, memo){
+    var st = foodState(id);
+    return '<li><button class="fst f' + st + '" type="button" data-fs="' + esc(id) + '"'
+      + ' aria-label="' + esc(name) + ' — 되네/안되네 바꾸기">' + esc(FST[st] || FST[0]) + '</button>'
+      + '<span class="fb"><b>' + esc(name) + '</b>'
+      + (memo ? '<span class="fm">' + esc(memo) + '</span>' : '') + '</span></li>';
+  }
+  function foodsCard(){
+    if (!foodsShown(wk().w)) return '';
+    var h = '<div class="card food-c"><div class="h"><h2>입덧 때 먹을 것</h2></div>'
+      + '<p class="body">적은 양을 자주. 자극적인 맛과 지방식은 줄이고, '
+      + '기분 좋을 때나 배고플 때는 언제든 먹어.</p><ul class="fl">';
+    FOODS.forEach(function(f){ h += foodRow(f.id, f.t, f.m); });
+    customFoods().forEach(function(p){ h += foodRow(p[0], p[1].n, ''); });
+    h += '</ul>';
+    if (writable){
+      h += '<div class="addrow"><textarea class="field" id="finp" rows="1"'
+        + ' placeholder="이건 먹히더라"></textarea>'
+        + '<button class="btn" type="button" id="fadd">추가</button></div>';
+    }
+    /* 🔴 유일하게 건강 정보를 띄우는 카드다. 출처를 화면에도 밝힌다. */
+    return h + '<p class="foot">목록 출처: <b>' + esc(SRC) + '</b> (2026-08-13 갱신). '
+      + '입덧은 사람마다 달라서, 되는 것만 눌러서 표시해줘.</p></div>';
+  }
+  function cycleFood(id){
+    var o = foodsData(), it = o[id] || {};
+    it.s = ((it.s || 0) + 1) % FST.length;
+    S.foods = o; S.foods[id] = it;
+    render(); wr('foods/' + id + '/s', it.s);
+  }
+  function addFood(inp){
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v){ inp.focus(); return; }
+    inp.value = ''; drafts[inp.id] = '';
+    /* 먹히는 것을 적는 칸이라 처음부터 '되네' 로 둔다 */
+    var k = newKey(), it = {n: v, s: 1, at: new Date().toISOString()};
+    S.foods = foodsData(); S.foods[k] = it;
+    render(); wr('foods/' + k, it);
+  }
+
   /* ---------- 병원 · 조리원 ----------
      🔴 목록은 소스에 없다. 방(Firebase)에만 있다 — 저장소가 공개라
      어느 동네 병원 목록인지가 곧 사는 곳이다. 생리 시작일을 뺀 것과 같은 이유. */
@@ -1205,6 +1297,7 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
        + (dnote ? '<div class="dont"><b>하지 말 것</b>' + esc(dnote) + '</div>' : '')
        + '</div>';
     h += myCard();
+    h += foodsCard();
     h += placesCard();
     h += trashBox();
     h += '<p class="foot">주차별 이야기는 <b>일반적으로 알려진 내용</b>이야. 사람마다 다르고, '
@@ -1285,6 +1378,14 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
     var askt = document.getElementById('asktoggle');
     if (askt) askt.addEventListener('click', function(){ showAsk = !showAsk; render(); });
     var pinp = document.getElementById('pinp'), padd = document.getElementById('padd');
+    app.querySelectorAll('[data-fs]').forEach(function(b){
+      b.addEventListener('click', function(){ cycleFood(b.dataset.fs); });
+    });
+    var finp = document.getElementById('finp'), fadd = document.getElementById('fadd');
+    if (fadd) fadd.addEventListener('click', function(){ addFood(finp); });
+    if (finp) finp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addFood(finp); }
+    });
     if (padd) padd.addEventListener('click', function(){ addPlace(pinp); });
     if (pinp) pinp.addEventListener('keydown', function(e){
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addPlace(pinp); }

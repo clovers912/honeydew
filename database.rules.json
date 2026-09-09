@@ -23,6 +23,17 @@
           }
         },
 
+        "foods": {
+          "$id": {
+            ".validate": "newData.hasChildren(['s'])",
+            "n": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100" },
+            "s": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2" },
+            "x": { ".validate": "newData.isBoolean()" },
+            "at": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "$other": { ".validate": false }
+          }
+        },
+
         "places": {
           "$id": {
             ".validate": "newData.hasChildren(['n','k'])",

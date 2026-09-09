@@ -16,7 +16,7 @@ if (!m) {
   console.error('index.html 에서 @pure 블록을 찾지 못했다. 마커가 지워졌는지 확인할 것.');
   process.exit(1);
 }
-const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey','growthStops'];
+const api = ['DAY','DOW','midnight','parseDay','ymd','addDays','daysBetween','weeksFrom','ddayTo','fmtDay','weekStartKey','growthStops','foodsShown'];
 const F = new Function(m[0] + '\nreturn {' + api.join(',') + '};')();
 
 /* 화면 문구 표 — 주차마다 빠진 칸이 있으면 그 주에 상자가 통째로 사라진다.
@@ -44,6 +44,15 @@ if (!sm) {
   process.exit(1);
 }
 const G = new Function(sm[0] + '\nreturn {SUGGEST};')();
+
+/* 입덧 음식 표 — 건강 정보라 항목마다 1차 출처를 달았다.
+   🔴 출처 없는 항목이 섞이면 지어낸 문장이 그대로 아내 화면에 뜬다. 그래서 기계로 센다. */
+const fm = html.match(/var FST = \[[\s\S]*?\];[\s\S]*?var FOODS = \[[\s\S]*?\n  \];/);
+if (!fm) {
+  console.error('index.html 에서 FST/FOODS 를 찾지 못했다.');
+  process.exit(1);
+}
+const FD = new Function(fm[0] + '\nreturn {FST, FOODS};')();
 
 let pass = 0, fail = 0;
 function eq(actual, expected, what) {
@@ -295,6 +304,39 @@ group('작성자 라벨', () => {
      아내가 열면 아빠 항목이 든 카드가 "내가 할 일" 로 보였다. 여기도 자리가 둘이다. */
   eq((html.match(/아빠가 할 일/g) || []).length, 2, '아빠가 할 일 이 제목과 입력칸 두 자리에');
   eq((html.match(/내가 할 일/g)   || []).length, 0, '1인칭 내가 할 일 이 남아 있지 않다');
+});
+
+/* 입덧 음식 카드 — 아내가 되네/안되네를 표시한다.
+   🔴 이 카드만 유일하게 건강 정보를 화면에 띄운다. 출처 게이트가 그 대가다. */
+group('입덧 음식', () => {
+  /* 출처 — SUGGEST 의 행정 항목과 같은 게이트다. 없으면 지어낸 문장이 뜬다 */
+  eq(FD.FOODS.every(f => typeof f.src === 'string' && f.src.length > 0),
+     true, '항목마다 1차 출처 src 가 있다');
+  eq(FD.FOODS.every(f => f.src.includes('질병관리청')),
+     true, '출처가 전부 1차 출처(질병관리청)다');
+
+  /* id — 🔴 배열 인덱스를 키로 쓰지 않는다(교훈 9). 아내의 표시가 이 id 로 저장되므로
+     순서를 바꾸거나 항목을 지우면 표시가 엉뚱한 음식에 붙는다 */
+  eq(new Set(FD.FOODS.map(f => f.id)).size, FD.FOODS.length, 'id 가 서로 다르다');
+  eq(FD.FOODS.every(f => /^[a-z][a-z0-9]{0,15}$/.test(f.id)),
+     true, 'id 는 순서와 무관한 영문 슬러그다');
+  eq(FD.FOODS.every(f => typeof f.t === 'string' && f.t.length > 0),
+     true, '항목마다 문구 t 가 있다');
+
+  /* 상태 — 미표시 / 되네 / 안되네 세 단계. 한 바퀴 돌면 제자리 */
+  eq(FD.FST.length, 3, '상태 세 단계');
+  eq(FD.FST[0], '아직', '처음은 미표시 — 안 물어본 것이 답한 것처럼 보이면 안 된다');
+  let s = 0;
+  for (let i = 0; i < FD.FST.length; i++) s = (s + 1) % FD.FST.length;
+  eq(s, 0, '한 바퀴 돌면 처음으로');
+
+  /* 노출 주차 — 16주까지 [사용자 결정 2026-09-09]. 경계가 틀리면
+     입덧이 끝난 뒤에도 카드가 남거나, 한창일 때 사라진다 */
+  eq(F.foodsShown(0),  true,  '0주에도 보인다');
+  eq(F.foodsShown(7),  true,  '지금(7주) 보인다');
+  eq(F.foodsShown(16), true,  '16주까지 보인다');
+  eq(F.foodsShown(17), false, '17주부터 안 보인다');
+  eq(F.foodsShown(40), false, '막달에는 안 보인다');
 });
 
 if (fail) { console.error('실패 ' + fail + ' / 통과 ' + pass); process.exit(1); }
