@@ -165,7 +165,11 @@ body{
 /* 입덧 때 먹을 것 — 몸에 대한 카드라 '이번 주 몸'과 같은 살구를 쓴다 (의미마다 색 하나) */
 .card.food-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
 .card.food-c h2{color:var(--apricot)}
-.fl{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.fh{font-family:var(--display);font-weight:600;font-size:13px;color:var(--apricot);
+  margin:16px 0 0;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.fh span{font-family:var(--sans);font-weight:300;font-size:10.5px;color:var(--ink-3);
+  letter-spacing:0}
+.fl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
 .fl li{display:flex;align-items:flex-start;gap:10px}
 .fst{flex:0 0 auto;appearance:none;-webkit-appearance:none;cursor:pointer;
   font-family:var(--sans);font-size:11px;letter-spacing:.02em;line-height:1.6;
@@ -1028,15 +1032,35 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
   var FST = ['아직', '되네', '안되네'];
 
   var SRC = '질병관리청 국가건강정보포털 「입덧」';
+  /* 🔴 후기는 국가기관 권고가 아니다. 섞으면 같은 무게로 읽히므로 kind 로 갈라
+     화면에서도 묶음을 나눈다. 문구는 마미톡 커뮤니티 「입덧 음식 총정리」(2025-05-12)
+     원문 그대로다 — 한마디를 그대로 두는 것이 "이건 후기다"를 가장 잘 말한다.
+     크래커는 이미 권고 줄에 있어 뺐다. */
+  var SRC2 = '마미톡 커뮤니티 「입덧 음식 총정리」';
   var FOODS = [
-    {id:'dry',    t:'마른 것 — 크래커 · 말린 식품 · 고단백 스낵',
+    {kind:'gov', id:'dry',    t:'마른 것 — 크래커 · 말린 식품 · 고단백 스낵',
      m:'아침에 일어나자마자', src:SRC},
-    {id:'cold',   t:'찬 음식',
+    {kind:'gov', id:'cold',   t:'찬 음식',
      m:'뜨거운 음식 냄새가 힘들 때', src:SRC},
-    {id:'ginger', t:'생강',
+    {kind:'gov', id:'ginger', t:'생강',
      m:'구역이 나아졌다는 연구 보고가 있어', src:SRC},
-    {id:'drink',  t:'물 · 음료 조금씩 자주',
-     m:'하루 약 2L (30~35mL/kg)', src:SRC}
+    {kind:'gov', id:'drink',  t:'물 · 음료 조금씩 자주',
+     m:'하루 약 2L (30~35mL/kg)', src:SRC},
+
+    {kind:'tip', id:'orange', t:'오렌지',
+     m:'상큼해서 기분도 좋아요!', src:SRC2},
+    {kind:'tip', id:'bread',  t:'식빵 · 베이글',
+     m:'식빵도 좋고 베이글 같은 빵류도 좋아요', src:SRC2},
+    {kind:'tip', id:'naeng',  t:'냉면',
+     m:'냉면 육수 한입 마시고 살 것 같았어요!', src:SRC2},
+    {kind:'tip', id:'memil',  t:'모밀',
+     m:'따뜻한 건 다 느끼하고 냄새 나는데, 모밀은 괜찮았어요!', src:SRC2},
+    {kind:'tip', id:'nurung', t:'누룽지',
+     m:'누룽지에 물 말아서 한 숟갈씩 넘겼어요', src:SRC2},
+    {kind:'tip', id:'maesil', t:'매실차',
+     m:'입덧으로 아무것도 못 먹을 때, 매실차 한 모금이 살렸어요', src:SRC2},
+    {kind:'tip', id:'burger', t:'햄버거',
+     m:'모든 음식이 다 울렁거렸는데, 햄버거는 이상하게 괜찮았어요', src:SRC2}
   ];
 
   function foodsData(){ return (S && S.foods) ? S.foods : {}; }
@@ -1058,21 +1082,36 @@ input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);paddi
       + '<span class="fb"><b>' + esc(name) + '</b>'
       + (memo ? '<span class="fm">' + esc(memo) + '</span>' : '') + '</span></li>';
   }
+  function foodGroup(kind){
+    var rows = FOODS.filter(function(f){ return f.kind === kind; });
+    if (!rows.length) return '';
+    var h = '<ul class="fl">';
+    rows.forEach(function(f){ h += foodRow(f.id, f.t, f.m); });
+    return h + '</ul>';
+  }
   function foodsCard(){
     if (!foodsShown(wk().w)) return '';
     var h = '<div class="card food-c"><div class="h"><h2>입덧 때 먹을 것</h2></div>'
       + '<p class="body">적은 양을 자주. 자극적인 맛과 지방식은 줄이고, '
-      + '기분 좋을 때나 배고플 때는 언제든 먹어.</p><ul class="fl">';
-    FOODS.forEach(function(f){ h += foodRow(f.id, f.t, f.m); });
-    customFoods().forEach(function(p){ h += foodRow(p[0], p[1].n, ''); });
-    h += '</ul>';
+      + '기분 좋을 때나 배고플 때는 언제든 먹어.</p>'
+      + '<p class="fh">권고</p>' + foodGroup('gov')
+      /* 🔴 이 한 줄이 두 묶음의 무게를 가른다. 빼면 후기가 권고처럼 읽힌다. */
+      + '<p class="fh">이게 먹혔대 <span>국가기관 권고가 아니라 다른 임산부들이 한 말이야</span></p>'
+      + foodGroup('tip');
+    var mine = customFoods();
+    if (mine.length){
+      h += '<p class="fh">우리가 찾은 것</p><ul class="fl">';
+      mine.forEach(function(p){ h += foodRow(p[0], p[1].n, ''); });
+      h += '</ul>';
+    }
     if (writable){
       h += '<div class="addrow"><textarea class="field" id="finp" rows="1"'
         + ' placeholder="이건 먹히더라"></textarea>'
         + '<button class="btn" type="button" id="fadd">추가</button></div>';
     }
     /* 🔴 유일하게 건강 정보를 띄우는 카드다. 출처를 화면에도 밝힌다. */
-    return h + '<p class="foot">목록 출처: <b>' + esc(SRC) + '</b> (2026-08-13 갱신). '
+    return h + '<p class="foot">권고 출처: <b>' + esc(SRC) + '</b> (2026-08-13 갱신) · '
+      + '후기 출처: <b>' + esc(SRC2) + '</b> (2025-05-12).<br>'
       + '입덧은 사람마다 달라서, 되는 것만 눌러서 표시해줘.</p></div>';
   }
   function cycleFood(id){

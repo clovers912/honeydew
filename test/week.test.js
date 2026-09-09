@@ -309,11 +309,23 @@ group('작성자 라벨', () => {
 /* 입덧 음식 카드 — 아내가 되네/안되네를 표시한다.
    🔴 이 카드만 유일하게 건강 정보를 화면에 띄운다. 출처 게이트가 그 대가다. */
 group('입덧 음식', () => {
-  /* 출처 — SUGGEST 의 행정 항목과 같은 게이트다. 없으면 지어낸 문장이 뜬다 */
+  /* 출처 — SUGGEST 의 행정 항목과 같은 게이트다. 없으면 지어낸 문장이 뜬다.
+     🔴 두 묶음이 섞이면 국가기관 권고와 커뮤니티 후기가 같은 무게로 읽힌다.
+     그래서 게이트를 푸는 게 아니라 묶음별로 조인다. */
   eq(FD.FOODS.every(f => typeof f.src === 'string' && f.src.length > 0),
-     true, '항목마다 1차 출처 src 가 있다');
-  eq(FD.FOODS.every(f => f.src.includes('질병관리청')),
-     true, '출처가 전부 1차 출처(질병관리청)다');
+     true, '항목마다 출처 src 가 있다');
+  eq(FD.FOODS.every(f => f.kind === 'gov' || f.kind === 'tip'),
+     true, '항목마다 묶음 kind 가 gov 아니면 tip 이다');
+  const gov = FD.FOODS.filter(f => f.kind === 'gov');
+  const tip = FD.FOODS.filter(f => f.kind === 'tip');
+  eq(gov.length > 0, true, '권고 묶음이 비어 있지 않다');
+  eq(tip.length > 0, true, '후기 묶음이 비어 있지 않다');
+  eq(gov.every(f => f.src.includes('질병관리청')),
+     true, '권고는 전부 1차 출처(질병관리청)다');
+  eq(tip.every(f => f.src.includes('마미톡')),
+     true, '후기는 전부 출처(마미톡 커뮤니티)를 밝힌다');
+  eq(tip.every(f => typeof f.m === 'string' && f.m.length > 0),
+     true, '후기는 원문 한마디를 그대로 달고 있다 — 그게 후기임을 문장이 말한다');
 
   /* id — 🔴 배열 인덱스를 키로 쓰지 않는다(교훈 9). 아내의 표시가 이 id 로 저장되므로
      순서를 바꾸거나 항목을 지우면 표시가 엉뚱한 음식에 붙는다 */
