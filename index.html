@@ -1,0 +1,1668 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FAF7FB">
+<!-- 🔴 'only light' 는 취향이 아니라 방어다. 폰이 다크 모드면 안드로이드 크롬·삼성
+     인터넷이 색을 선언 안 한 페이지를 통째로 뒤집어(자동 어두운 테마) 검게 만든다.
+     이 앱은 라이트 전용으로 확정됐다 (DESIGN.md 2026-08-28, 다크 기각). -->
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex,nofollow">
+<title>허니듀</title>
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="허니듀">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="appcss">
+:root{
+  color-scheme: only light;   /* 브라우저가 임의로 어둡게 뒤집지 못하게 한다 */
+  --bg:#FAF7FB; --surface:#FFFFFF; --surface-2:#F1ECF7;
+  --ink:#2A2430; --ink-2:#635A6E; --ink-3:#8A8194; --rule:#E8E1EF;
+  /* 의미마다 색이 하나씩. 장식이 아니라 구분이다 */
+  --plum:#7A4DA6;   --plum-dim:#C7B0DD;  --plum-wash:#F4ECFB;   /* 엄마·행동 */
+  --honey:#5F7C2B;  --honey-dim:#AECB7B; --honey-wash:#F1F7E5;  /* 아이 */
+  --apricot:#C1663C; --apricot-dim:#EFBEA3; --apricot-wash:#FDF1EA; /* 몸 */
+  --teal:#2C7B78;   --teal-dim:#9BCAC7;  --teal-wash:#E8F4F3;   /* 내 할 일 */
+  --on-plum:#FFFFFF; --on-plum-2:#E6D8F2; --bubble:#F4ECFB;
+  --on-apricot:#FFFFFF;   /* 살구 위 글자. 하드코딩하면 팔레트를 뒤집을 때 터진다 */
+  --rind:#7E9647;
+  --t1:#D9C6EC; --t2:#F0C3A6; --t3:#9CCBC8;
+  --danger-bg:#FBE9EE; --danger-line:#E0A8B8; --danger-ink:#8E2F47;
+  --display:"Jua","IBM Plex Sans KR",sans-serif;
+  --sans:"IBM Plex Sans KR","Pretendard","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-weight:300; font-size:16px; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.022'/%3E%3C/svg%3E");
+}
+.wrap{max-width:460px;margin:0 auto;padding:26px 22px calc(72px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:24px}
+
+/* 상단 */
+.top{display:flex;align-items:center;gap:11px}
+.top .name{font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:.02em}
+.top .mode{margin-left:auto;font-family:var(--sans);font-size:10.5px;letter-spacing:.08em;
+  color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:4px 8px}
+.hero{display:flex;align-items:center;gap:20px}
+.hero .txt{display:flex;flex-direction:column;gap:3px}
+.wk{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em}
+.dday{font-family:var(--mono);font-size:12.5px;color:var(--plum);letter-spacing:.06em}
+.edd{font-family:var(--sans);font-size:11px;color:var(--ink-3);letter-spacing:.06em}
+.mascot{display:block}
+@keyframes sway{0%,100%{transform:rotate(-3.2deg)}50%{transform:rotate(3.2deg)}}
+.mascot.awake{animation:sway 3.4s ease-in-out infinite;transform-origin:70% 85%}
+
+/* 성장 경로 — 마스코트를 누르면 펼쳐진다 */
+.grow-t{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;
+  margin:0;cursor:pointer;border-radius:50%;line-height:0}
+.grow-t:focus-visible{outline:2px solid var(--honey);outline-offset:4px}
+/* 가로 스크롤이 없다. 칸이 최대 다섯이라(growthStops) 폭을 나눠 가지면 늘 들어간다 */
+.grow{display:flex;gap:8px;padding:4px 0 2px}
+.gs{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;opacity:.9}
+/* 칸 폭을 그대로 채운다. 상한을 두면 넓은 폰에서 오른쪽에 빈 자리가 남아 "딱 맞음"이 깨진다.
+   폭이 좁아지면 같이 줄어드므로 어느 폰에서도 한 줄에 들어간다. */
+.grow .mascot{width:100%;height:auto}
+.gs.past{opacity:.38}
+.gs b{font-family:var(--display);font-weight:600;font-size:13px;line-height:1.4}
+.gs time{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.03em}
+.gs i{font-style:normal;font-family:var(--sans);font-size:10px;color:var(--plum);letter-spacing:.04em}
+.gs.now b{color:var(--plum)}
+/* 36주에 아기가 멜론을 채우므로 40주 그림은 36주와 같다. 그림으로는 갈리지 않으니
+   달력이 예정일 칸에 쓰는 색(.cell.edd)을 그대로 빌려 마지막 칸을 구분한다. */
+.gs.last b,.gs.last time{color:var(--apricot)}
+
+/* 말풍선 */
+.bubble{position:relative;background:var(--bubble);border:1px solid var(--plum-dim);
+  border-radius:16px;padding:16px 17px 15px;margin-top:-13px;display:flex;flex-direction:column;gap:12px}
+.bubble::before{content:"";position:absolute;top:-9px;left:32px;
+  border-left:9px solid transparent;border-right:9px solid transparent;
+  border-bottom:9px solid var(--plum-dim)}
+.bubble::after{content:"";position:absolute;top:-7.5px;left:33px;
+  border-left:8px solid transparent;border-right:8px solid transparent;
+  border-bottom:8px solid var(--bubble)}
+.says{font-family:var(--display);font-weight:500;font-size:16px;color:var(--plum);margin:0;line-height:1.5}
+.items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column}
+.items li{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--plum-dim)}
+.items li:first-child{border-top:0;padding-top:2px}
+.chk{flex:0 0 auto;background:none;border:0;padding:4px 0 0;cursor:pointer;line-height:0}
+.chk span{display:block;width:16px;height:16px;border:1.5px solid var(--plum-dim);border-radius:3px;
+  position:relative;transition:background .15s ease,border-color .15s ease}
+.done .chk span{background:var(--honey);border-color:var(--honey)}
+.done .chk span::after{content:"";position:absolute;left:4.5px;top:1px;width:4px;height:8px;
+  border:solid var(--surface);border-width:0 2px 2px 0;transform:rotate(43deg)}
+.chk:focus-visible{outline:2px solid var(--plum);outline-offset:3px;border-radius:3px}
+.txt{flex:1;min-width:0}
+.lab{background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer;
+  text-align:left;line-height:1.7;font-size:14.5px;word-break:break-word;width:100%}
+.lab:hover{color:var(--plum)}
+.lab:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
+.done .lab{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-3)}
+.who{display:inline-block;font-family:var(--display);font-weight:400;font-size:11px;letter-spacing:0;
+  padding:1.5px 8px;border-radius:20px;margin-right:7px;vertical-align:1.5px;line-height:1.5;white-space:nowrap}
+.who.wife{background:var(--plum);color:var(--on-plum)}
+.who.me{background:transparent;box-shadow:inset 0 0 0 1px var(--plum-dim);color:var(--ink-2)}
+.when{font-family:var(--sans);font-size:10.5px;color:var(--ink-3);letter-spacing:.05em;display:block;margin-top:3px}
+.addrow{display:flex;gap:8px;align-items:flex-start}
+.addrow .field{flex:1}
+.field{width:100%;background:var(--surface);border:1px solid var(--plum-dim);border-radius:8px;
+  padding:11px 13px;color:var(--ink);font-family:var(--sans);font-weight:300;font-size:16px;
+  line-height:1.6;resize:none;min-height:46px}
+.field::placeholder{color:var(--ink-3)}
+.field:focus{outline:none;border-color:var(--plum)}
+.btn{font-family:var(--display);font-weight:400;font-size:15px;padding:11px 16px;border:0;border-radius:6px;
+  background:var(--plum);color:var(--on-plum);cursor:pointer;letter-spacing:.01em;white-space:nowrap;align-self:stretch}
+.btn:disabled{background:var(--surface-2);color:var(--ink-3);cursor:default}
+.btn:focus-visible{outline:2px solid var(--plum);outline-offset:3px}
+.mini{font-family:var(--display);font-weight:400;font-size:13px;padding:6px 12px;border-radius:5px;
+  border:1px solid var(--plum-dim);background:var(--surface);color:var(--plum);cursor:pointer}
+.mini:hover{background:var(--plum);color:var(--on-plum)}
+.mini:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.del{border-color:var(--rule);color:var(--ink-3)}
+.del:hover{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
+.erow{display:flex;gap:7px;margin-top:8px}
+.edate{display:flex;align-items:center;gap:8px;margin-top:8px}
+.edate label{font-family:var(--sans);font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+.edate input[type="date"]{flex:1;font-size:15px;padding:8px 10px}
+.rm{flex:0 0 auto;background:none;border:0;color:var(--ink-3);cursor:pointer;font-size:17px;
+  line-height:1;padding:2px 5px;border-radius:5px;opacity:.5;align-self:flex-start;margin-top:2px}
+.rm:hover{color:var(--danger-ink);background:var(--danger-bg);opacity:1}
+.rm:focus-visible{outline:2px solid var(--danger-line);outline-offset:1px;opacity:1}
+.undo{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--rule);border-radius:10px;padding:10px 13px}
+.undo b{color:var(--ink);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undo button{font-family:var(--display);font-size:13px;color:var(--plum);background:none;
+  border:1px solid var(--plum-dim);border-radius:5px;padding:5px 11px;cursor:pointer;flex:0 0 auto}
+.undo button:hover{background:var(--plum);color:var(--on-plum)}
+.sugh{font-size:11.5px;color:var(--ink-3);margin:2px 0 0;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sug{display:flex;flex-wrap:wrap;gap:7px}
+.sug button{font-family:var(--display);font-size:12.5px;color:var(--teal);background:var(--surface);
+  border:1px dashed var(--teal-dim);border-radius:20px;padding:6px 12px;cursor:pointer;text-align:left}
+.sug button:hover{background:var(--teal);color:#fff;border-style:solid}
+.sug button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.more{align-self:flex-start;background:none;border:0;padding:3px 0;font-family:var(--display);
+  font-weight:400;font-size:13.5px;color:var(--plum);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.more:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
+
+/* 카드 */
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:20px 19px;
+  display:flex;flex-direction:column;gap:13px}
+.card.body-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
+.card.body-c h2{color:var(--apricot)}
+
+/* 입덧 때 먹을 것 — 몸에 대한 카드라 '이번 주 몸'과 같은 살구를 쓴다 (의미마다 색 하나) */
+.card.food-c{background:var(--apricot-wash);border-color:var(--apricot-dim)}
+.card.food-c h2{color:var(--apricot)}
+.fh{font-family:var(--display);font-weight:600;font-size:13px;color:var(--apricot);
+  margin:16px 0 0;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+.fh span{font-family:var(--sans);font-weight:300;font-size:10.5px;color:var(--ink-3);
+  letter-spacing:0}
+.fl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.fl li{display:flex;align-items:flex-start;gap:10px}
+.fst{flex:0 0 auto;appearance:none;-webkit-appearance:none;cursor:pointer;
+  font-family:var(--sans);font-size:11px;letter-spacing:.02em;line-height:1.6;
+  border:1px solid var(--apricot-dim);background:var(--surface);color:var(--ink-3);
+  border-radius:999px;padding:2px 0;width:56px;text-align:center}
+.fst.f1{background:var(--apricot);border-color:var(--apricot);color:var(--on-apricot)}
+.fst.f2{background:var(--surface-2);border-color:var(--rule);color:var(--ink-3)}
+.fst.f2 + .fb b{text-decoration:line-through;color:var(--ink-3)}
+.fb{display:flex;flex-direction:column;gap:1px;min-width:0}
+.fb b{font-weight:400;font-size:14px;line-height:1.55}
+.fm{font-family:var(--sans);font-size:11px;color:var(--ink-3);line-height:1.5}
+.card.mine-c{background:var(--teal-wash);border-color:var(--teal-dim)}
+.card.mine-c h2{color:var(--teal)}
+.card.mine-c .items li{border-top-color:var(--teal-dim)}
+.card.mine-c .chk span{border-color:var(--teal-dim)}
+.card.mine-c .done .chk span{background:var(--teal);border-color:var(--teal)}
+.weekno{font-family:var(--display);font-size:12px;color:var(--apricot);
+  background:var(--surface);border:1px solid var(--apricot-dim);border-radius:20px;padding:2px 10px}
+.card .h{display:flex;align-items:center;gap:8px}
+.card .h h2{flex:1}
+h2{font-family:var(--display);font-weight:400;font-size:15px;margin:0;color:var(--ink-2);letter-spacing:.03em}
+.body{font-size:14.5px;line-height:1.8;margin:0}
+.empty{font-size:14px;line-height:1.8;color:var(--ink-3);margin:0}
+.dont{border-left:3px solid var(--apricot);background:var(--surface);border-radius:0 5px 5px 0;
+  padding:12px 14px;font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.dont b{display:block;color:var(--apricot);font-weight:500;font-size:12.5px;margin-bottom:3px;letter-spacing:.02em}
+
+/* 달력 */
+.calhead{display:flex;align-items:center;gap:9px}
+.calhead h2{flex:1}
+.calhead .span{font-family:var(--sans);font-size:10.5px;color:var(--honey);letter-spacing:.05em}
+.nav{background:var(--surface);border:1px solid var(--rule);border-radius:5px;color:var(--ink-2);
+  width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1;padding:0}
+.nav:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.mon{font-family:var(--mono);font-size:12px;color:var(--ink);letter-spacing:.06em;min-width:66px;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dow{font-family:var(--display);font-weight:400;font-size:11.5px;color:var(--ink-3);text-align:center;padding-bottom:6px}
+.dow.sun{color:var(--plum-dim)}
+.cell{aspect-ratio:1/.88;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border-radius:8px;position:relative;background:none;border:1px solid transparent;
+  padding:0;font:inherit;color:inherit;cursor:pointer}
+.cell.wkstart{background:var(--surface-2)}
+.cell:focus-visible{outline:2px solid var(--plum);outline-offset:1px}
+.cell .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink-2);line-height:1}
+.cell .w{font-family:var(--sans);font-size:8.5px;color:var(--honey);line-height:1}
+.cell.pad{visibility:hidden}
+.cell.past .n{color:var(--ink-3);opacity:.75}
+.cell.today{background:var(--plum);border-color:var(--plum)}
+.cell.today .n{color:var(--on-plum);font-weight:500}
+.cell.today .w{color:var(--on-plum-2)}
+.cell.edd{border-color:var(--apricot);border-width:1.5px}
+.cell.edd .n{color:var(--apricot);font-weight:500}
+.cell.sel{border-color:var(--plum);border-width:2px}
+.cell.today.sel{border-color:var(--ink)}
+.dots{position:absolute;bottom:4px;display:flex;gap:2px}
+.dots i{width:3.5px;height:3.5px;border-radius:50%;background:var(--plum);display:block}
+.dots i.ok{background:var(--honey)}
+.cell.today .dots i{background:var(--on-plum)}
+.cell.today .dots i.ok{background:var(--on-plum-2)}
+.rail{margin-top:4px}
+.railbar{position:relative;height:30px}
+.band{position:absolute;top:11px;height:8px}
+.band.b1{left:0;width:32.5%;background:var(--t1);border-radius:4px 0 0 4px}
+.band.b2{left:32.5%;width:35%;background:var(--t2)}
+.band.b3{left:67.5%;width:32.5%;background:var(--t3);border-radius:0 4px 4px 0}
+.mk{position:absolute;top:2px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
+.mk .pin{width:2px;height:20px;background:var(--plum)}
+.mk.now .pin{width:1px;height:26px;background:var(--plum-dim)}
+.mk .dot{width:9px;height:9px;border-radius:50%;background:var(--plum);margin-top:-4px;border:2px solid var(--surface)}
+.railx{position:relative;height:13px;font-family:var(--sans);font-size:10px;color:var(--ink-3);
+  letter-spacing:.04em;margin-top:1px}
+.railx span{position:absolute;top:0}
+.railx .r{right:0}
+.callegend{font-size:11.5px;color:var(--ink-3);line-height:1.7;margin:0}
+.callegend b{color:var(--honey);font-weight:500}
+
+/* 날짜 상세 */
+.day{border-top:1px solid var(--rule);padding-top:15px;display:flex;flex-direction:column;gap:11px}
+.dayhead{display:flex;align-items:baseline;gap:9px}
+.dayhead .t{font-family:var(--display);font-weight:500;font-size:17px}
+.dayhead .w{font-family:var(--sans);font-size:11px;color:var(--honey);letter-spacing:.05em}
+.dayhead .x{margin-left:auto;background:none;border:0;color:var(--ink-3);cursor:pointer;
+  font-size:17px;line-height:1;padding:2px 6px;border-radius:4px}
+.dayhead .x:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.dnote{font-size:13.5px;line-height:1.75;color:var(--apricot);margin:0;
+  background:var(--apricot-wash);border-radius:8px;padding:11px 13px}
+.dnone{font-size:13.5px;color:var(--ink-3);margin:0;line-height:1.7}
+.day .items li{border-top-color:var(--rule)}
+
+.foot{font-size:13px;line-height:1.8;color:var(--ink-3);border-top:1px solid var(--rule);padding-top:18px}
+.foot b{color:var(--honey);font-weight:500}
+
+/* 설정 · 안내 화면 */
+.gate{max-width:420px;margin:0 auto;padding:64px 24px;display:flex;flex-direction:column;gap:18px}
+.gate h1{font-family:var(--display);font-weight:600;font-size:30px;margin:0;letter-spacing:-.02em}
+.gate p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.8}
+.seg{display:flex;border:1px solid var(--plum-dim);border-radius:8px;overflow:hidden;width:fit-content}
+.seg button{font-family:var(--display);font-size:14.5px;color:var(--plum);background:var(--surface);
+  border:0;padding:10px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--plum);color:var(--on-plum)}
+.seg button:focus-visible{outline:2px solid var(--plum);outline-offset:-2px}
+input[type="date"]{font-family:var(--mono);font-size:16px;color:var(--ink);padding:12px 13px;
+  border:1px solid var(--plum-dim);border-radius:8px;background:var(--surface);width:100%}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* 알림 — #app 밖에 있어 화면을 다시 그려도 살아남고, 어디서 저장하든 보인다 */
+#toast{position:fixed;left:50%;bottom:18px;z-index:60;max-width:calc(100% - 32px);
+  transform:translateX(-50%) translateY(150%);opacity:0;pointer-events:none;
+  padding:11px 17px;border-radius:999px;background:var(--ink);color:#fff;
+  font-family:var(--sans);font-size:13px;line-height:1.45;text-align:center;
+  box-shadow:0 8px 24px rgba(42,36,48,.24);transition:transform .22s ease,opacity .22s ease}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.err{background:var(--danger-ink)}
+
+/* 상단 알림 줄 */
+.note{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.5;
+  border:1px solid var(--rule);border-radius:10px;padding:10px 13px;
+  background:var(--surface-2);color:var(--ink-2)}
+.note b{color:var(--ink);font-weight:500}
+.note button{margin-left:auto;flex:0 0 auto;font-family:var(--display);font-size:12.5px;
+  background:none;border:1px solid var(--plum-dim);border-radius:5px;padding:5px 11px;
+  color:var(--plum);cursor:pointer}
+.note button:hover{background:var(--plum);color:var(--on-plum)}
+.note button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.note.warn{background:var(--danger-bg);border-color:var(--danger-line);color:var(--danger-ink)}
+.note.warn b{color:var(--danger-ink)}
+.note.fresh{background:var(--plum-wash);border-color:var(--plum-dim)}
+.note.turn{background:var(--honey-wash);border-color:var(--honey-dim)}
+.note.turn b{color:var(--honey)}
+
+/* 지운 것 — 삭제는 흔적을 남긴다 */
+/* 🗺️ 병원 로드맵 (2026-09-21) — 정본은 DESIGN.md 「병원 로드맵」.
+   구불구불한 길 + 정거장 + 구간별 남은 주수. 세로로 굽힌다 (폭이 460px 다). */
+.road{display:flex;flex-direction:column;margin-top:2px}
+/* 왼쪽 44px 이 길이 지나는 자리. 굽은 길 SVG 도 같은 폭이라 선이 이어진다. */
+.rg{flex:0 0 44px;position:relative;align-self:stretch}
+.rg i{position:absolute;left:14px;top:0;bottom:0;width:2px;background:var(--plum-dim)}
+/* 정거장 표지판. 길이 동그라미 뒤로 지나가도록 바탕을 채운다.
+   🔵 컬러 이모지는 이 카드에서만 쓴다 [사용자 결정 2026-09-21] */
+/* 원 중심(0+15)을 길 중심(14+1)에 맞춘다. 1px 어긋나면 길이 원 옆을 스쳐 지나가 보인다 */
+.rg[data-ic]::after{content:attr(data-ic);position:absolute;left:0;top:0;width:30px;height:30px;
+  box-sizing:border-box;border-radius:50%;background:var(--surface);border:1.5px solid var(--plum-dim);
+  display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.rs.now .rg::after{border:2px solid var(--plum);background:var(--plum-wash)}
+/* 지나온 칸은 성장 경로(.gs.past)와 같은 값으로 흐린다 */
+.rs.past{opacity:.38}
+.rs{display:flex;gap:10px}
+.rc-body{flex:1;min-width:0;padding:5px 0 16px;display:flex;flex-direction:column;gap:4px}
+.rhead{display:flex;align-items:baseline;gap:9px;width:100%;text-align:left;
+  background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit}
+.rhead:focus-visible{outline:2px solid var(--plum);outline-offset:3px;border-radius:4px}
+.rl{flex:0 0 auto;font-family:var(--sans);font-size:10.5px;letter-spacing:.04em;
+  padding:3px 8px;border-radius:20px;border:1px solid var(--plum-dim);
+  background:var(--plum-wash);color:var(--plum)}
+.rn{flex:1;min-width:0;font-family:var(--display);font-size:15px;color:var(--ink)}
+.rs.now .rn{color:var(--plum)}
+.rcar{flex:0 0 auto;font-family:var(--display);font-size:11.5px;color:var(--ink-3)}
+.rhint{font-size:12px;color:var(--ink-3);line-height:1.6;padding-left:2px}
+/* 구간 — 굽은 길 한 토막과 남은 주수 */
+.rseg{display:flex;gap:10px;align-items:center}
+.rseg>span{font-family:var(--display);font-size:12.5px;color:var(--ink-3);letter-spacing:.02em}
+/* 출발 — 허니듀가 현재 칸에 선다 */
+.rnow{display:flex;gap:10px;align-items:center;padding:2px 0 6px}
+.rnow svg{flex:0 0 auto;width:30px;height:30px;margin-right:14px}
+.rnow>span{font-family:var(--display);font-size:13px;color:var(--honey);letter-spacing:.02em}
+/* 도착 — 달력이 예정일에 쓰는 살구색을 빌린다 */
+.rend{display:flex;gap:10px;align-items:center}
+.rend .rg{align-self:auto;height:30px}
+.rend .rg::after{border-color:var(--apricot-dim);background:var(--apricot-wash)}
+.rend>span{font-family:var(--display);font-size:13px;color:var(--apricot);letter-spacing:.02em}
+/* 펼친 자리 */
+.rbody{display:flex;flex-direction:column;gap:10px;margin-top:5px}
+.rp{display:flex;flex-direction:column;gap:4px}
+.rpn{font-family:var(--display);font-size:13.5px;color:var(--ink-2)}
+.rp .mm{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+/* 아직 안 정한 것. 경고(danger)는 쓰지 않는다 — 잘못된 게 아니라 아직 안 한 것이다. */
+.rp .todo{background:var(--surface-2);border-radius:8px;padding:8px 11px 9px}
+.rp .todo b{display:block;font-family:var(--display);font-size:11.5px;font-weight:400;
+  color:var(--ink-3);letter-spacing:.03em;margin-bottom:3px}
+.rp .todo ul{margin:0;padding-left:16px;font-size:12.5px;color:var(--ink-2);
+  line-height:1.6;list-style:disc}
+.rp .todo li{margin-top:4px}
+.rp .todo li:first-child{margin-top:0}
+.rp .todo li::marker{color:var(--ink-3)}
+.rp .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.rp .acts a,.rp .acts button{font-family:var(--display);font-size:12.5px;padding:5px 11px;
+  border-radius:5px;border:1px solid var(--plum-dim);background:var(--surface);
+  color:var(--plum);cursor:pointer;text-decoration:none;display:inline-block}
+.rp .acts a:hover,.rp .acts button:hover{background:var(--plum-wash)}
+.rp .acts a:focus-visible,.rp .acts button:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.trash{display:flex;flex-direction:column;gap:9px}
+.trash>button{align-self:flex-start;background:none;border:0;padding:3px 0;cursor:pointer;
+  font-family:var(--display);font-size:13px;color:var(--ink-3);
+  text-decoration:underline;text-underline-offset:3px}
+.trash>button:hover{color:var(--ink-2)}
+.trash>button:focus-visible{outline:2px solid var(--plum);outline-offset:2px;border-radius:3px}
+.trash li.gone{display:flex;align-items:center;gap:10px;padding:7px 0}
+.trash li.gone .txt{flex:1;min-width:0;font-size:14px;color:var(--ink-3);text-decoration:line-through}
+
+/* 달력 : 항목이 세 개를 넘는 날 */
+.dots i.plus{width:auto;height:auto;border-radius:0;background:none;
+  font-family:var(--sans);font-size:8px;line-height:3.5px;color:var(--ink-3)}
+.cell.today .dots i.plus{color:var(--on-plum-2);background:none}
+
+/* 설정 화면 */
+.gate .calc{font-family:var(--sans);font-size:12.5px;color:var(--honey)}
+.gate .fine{font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script id="appjs">
+(function(){
+  /* ===== 설정 : 이 값들은 공개돼도 되는 클라이언트 키다.
+     실제 보호는 Realtime Database 규칙이 한다 (방 키 길이 24자 이상). ===== */
+  var FB = {
+    apiKey: "AIzaSyBom1Ql6ToXJA7t5Wk4O1gtfVCBvTAyQ3I",
+    authDomain: "honeydew-61afb.firebaseapp.com",
+    databaseURL: "https://honeydew-61afb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "honeydew-61afb",
+    appId: "1:970612095548:web:a4cc6b33b932d11765a139"
+  };
+
+  var LSK = 'honeydew.room', SEENK = 'honeydew.seen';
+  function ls(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+
+  /* 방 키는 URL 해시에만 있고 서버로 전송되지 않는다.
+     홈화면(PWA)에서 열면 해시가 없다 — manifest 의 start_url 은 공개 정적 파일이라
+     열쇠를 넣을 수 없기 때문이다. 그래서 이 기기에 저장해 둔 것으로 복구한다. */
+  var ROOM = decodeURIComponent((location.hash || '').replace(/^#/, '')).trim();
+  if (ROOM.length >= 24){
+    lsSet(LSK, ROOM);
+  } else {
+    var saved = ls(LSK);
+    if (saved && saved.length >= 24){
+      ROOM = saved;
+      try { history.replaceState(null, '', '#' + ROOM); } catch(e){}
+    }
+  }
+
+  /* 🔴 iOS 는 홈화면 앱과 사파리의 저장소가 갈릴 수 있다. manifest 가 붙어 있으면
+     아이콘이 start_url('./') 로 열려 해시도 없고 저장해 둔 열쇠도 안 보인다 —
+     즉 '링크가 짧아' 로 끝난다. iOS 에서는 manifest 를 떼어, 홈 화면에 추가할 때
+     '지금 보고 있는 주소'(열쇠 포함)가 그대로 바로가기에 담기게 한다.
+     iOS 는 apple-touch-icon · apple-mobile-web-app-capable 만으로도
+     아이콘과 전체화면이 다 나오므로 잃는 것이 없다.
+     안드로이드는 manifest 를 그대로 둔다 — 크롬은 브라우저와 설치본이 저장소를
+     공유해 start_url 로 열려도 열쇠가 복구되고, 떼면 '앱 설치'가 사라진다. */
+  function isApple(ua, platform, touch){
+    return /iP(hone|ad|od)/.test(ua) || (platform === 'MacIntel' && touch > 1);
+  }
+  if (ROOM.length >= 24 &&
+      isApple(navigator.userAgent, navigator.platform, navigator.maxTouchPoints || 0)){
+    var ml = document.querySelector('link[rel="manifest"]');
+    if (ml && ml.parentNode) ml.parentNode.removeChild(ml);
+  }
+
+  var app = document.getElementById('app');
+  var toastEl = document.getElementById('toast');
+  var S = null, ref = null, writable = true, ready = false, online = true;
+  var view = null, sel = null, editKey = null, expanded = false, showTrash = false, growOpen = false;
+  var undoKey = null, undoText = '', sugCache = [];
+  var gateMode = 'lmp', gateDate = '';
+  var INPUTS = ['inp','minp','dinp','ed','edon'];
+  /* 로드맵에서 펼친 정거장. 뷰어별 상태라 방에 저장하지 않는다. */
+  var openStop = null;
+
+  var drafts = {}, focusId = null, focusPos = 0, focusNext = null;
+
+  /* @pure:start — 날짜 계산. test/week.test.js 가 이 블록을 그대로 떼어 검사한다. */
+  var DAY = 86400000;
+  var DOW = ['일','월','화','수','목','금','토'];
+  function midnight(d){ var n = new Date(d.getTime()); n.setHours(0,0,0,0); return n; }
+  function parseDay(k){ return new Date(k + 'T00:00:00'); }
+  function ymd(d){
+    return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+  }
+  function addDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+  /* 자정으로 맞춘 뒤 반올림한다. 뺄셈만 하면 서머타임/시간대 이동에서 하루가 어긋난다. */
+  function daysBetween(a, b){ return Math.round((midnight(b) - midnight(a)) / DAY); }
+  function weeksFrom(lmp, d){
+    var n = daysBetween(lmp, d);
+    return { w: Math.floor(n/7), d: ((n % 7) + 7) % 7, n: n };
+  }
+  function ddayTo(edd, d){ return daysBetween(d, edd); }
+  function fmtDay(k){
+    var d = parseDay(k);
+    return ('0'+(d.getMonth()+1)).slice(-2) + '.' + ('0'+d.getDate()).slice(-2) + ' ' + DOW[d.getDay()];
+  }
+  /* 주차 w 가 시작하는 날. 구간째 담을 때 어디에 놓을지 정하는 데 쓴다. */
+  function weekStartKey(lmp, w){ return ymd(addDays(lmp, w * 7)); }
+  /* 성장 경로의 칸들. 고정 4칸에 현재 주차를 제 자리에 끼워 넣는다 — 최대 다섯 칸이고,
+     그래야 가로 스크롤 없이 폰 너비(좁으면 316px)에 들어간다.
+     5 를 뺀 이유: 점 하나라 성장이 안 읽힌다. 36 을 뺀 이유: 곡선이 36주에 차서
+     40주와 아기 반지름이 r=19 로 같다 — 그림으로 갈리지 않는 칸이었다.
+     40 을 넘기지 않는 이유: 예정일 뒤에 칸을 만들면 경로가 끝나지 않는 것처럼 보인다. */
+  var GROWTH = [12, 20, 28, 40];
+  function growthStops(lmp, day){
+    var cw = Math.max(0, Math.min(40, weeksFrom(lmp, day).w));
+    var ws = GROWTH.slice();
+    if (ws.indexOf(cw) < 0) ws.push(cw);
+    ws.sort(function(a, b){ return a - b; });
+    return ws.map(function(w){
+      return { w: w, key: weekStartKey(lmp, w), now: w === cw, past: w < cw, last: w === 40 };
+    });
+  }
+  /* 입덧 카드를 보여줄 주차. 16주까지 [사용자 결정 2026-09-09] — 더 일찍 끝나면 따로 걷는다.
+     지난 뒤에도 남으면 군더더기이고, 한창일 때 사라지면 쓸모가 없다. 경계를 테스트가 잡는다. */
+  function foodsShown(w){ return w <= 16; }
+  /* @pure:end */
+
+  function today(){ return midnight(new Date()); }
+  function lmpDate(){ return parseDay(S.lmp); }
+  function eddDate(){ return parseDay(S.edd); }
+  function since(d){ return daysBetween(lmpDate(), d); }
+  function wk(){ return weeksFrom(lmpDate(), today()); }
+  function dday(){ return ddayTo(eddDate(), today()); }
+  function weekOfKey(k){ return Math.floor(since(parseDay(k)) / 7); }
+  function railPct(n){ return Math.max(0, Math.min(100, (n / 280) * 100)).toFixed(1); }
+  function viewWeek(){ return sel ? weekOfKey(sel) : wk().w; }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  /* ---------- 항목 : 배열이 아니라 키 있는 객체다 ----------
+     배열이면 전체를 통째로 써야 하고, 그러면 마지막 쓰기가 이겨서
+     상대가 적은 항목이 에러 없이 사라진다. 키가 있으면 항목 단위로 쓴다. */
+  function newKey(){ return ref.child('items').push().key; }
+  function items(){ return (S && S.items) ? S.items : {}; }
+  function pick(keep){
+    var o = items();
+    return Object.keys(o).sort().reverse()
+      .filter(function(k){ return o[k] && (keep ? !o[k].x : !!o[k].x); })
+      .map(function(k){ return [k, o[k]]; });
+  }
+  function list(){ return pick(true); }      // 살아 있는 것, 최신 먼저
+  function trashed(){ return pick(false); }  // 지운 것
+  function dayOf(it){ return it.on || (it.at ? ymd(new Date(it.at)) : null); }
+
+  function isLegacy(v){
+    if (!v.items) return false;
+    if (Array.isArray(v.items)) return true;
+    var ks = Object.keys(v.items);
+    return ks.length > 0 && ks.every(function(k){ return /^\d+$/.test(k); });
+  }
+  function migrate(v){
+    var raw = v.items, arr;
+    if (Array.isArray(raw)) arr = raw.filter(Boolean);
+    else arr = Object.keys(raw).sort(function(a,b){ return a - b; }).map(function(k){ return raw[k]; });
+    var out = {};
+    /* push 키는 만든 순서대로 커진다. 뒤에서부터 발급해야 화면 순서(최신 먼저)가 유지된다. */
+    for (var i = arr.length - 1; i >= 0; i--) out[newKey()] = arr[i];
+    return out;
+  }
+
+  /* ---------- 알림 : #app 밖에 있어 다시 그려도 살아남는다 ---------- */
+  var toastT = null;
+  function toast(msg, isErr){
+    if (!toastEl) return;
+    if (toastT){ clearTimeout(toastT); toastT = null; }
+    if (!msg){ toastEl.className = ''; toastEl.textContent = ''; return; }
+    toastEl.textContent = msg;
+    toastEl.className = 'on' + (isErr ? ' err' : '');
+    if (!isErr) toastT = setTimeout(function(){ toastEl.className = ''; }, 1800);
+  }
+
+  /* ---------- 쓰기 ---------- */
+  function done(t){ clearTimeout(t); }
+  function fail(e){
+    var m = (e && e.message) || '';
+    if (/permission/i.test(m)){ writable = false; toast('쓰기 권한이 없어', true); render(); return; }
+    toast('저장 안 됨 — 다시 눌러줘', true);
+  }
+  function wr(path, val){
+    if (!ref || !writable) return;
+    var ok = false;
+    var t = setTimeout(function(){ if (!ok) toast('저장이 늦어. 연결을 확인해줘', true); }, 6000);
+    var p = (val === null) ? ref.child(path).remove() : ref.child(path).set(val);
+    p.then(function(){ ok = true; done(t); toast(''); })
+     .catch(function(e){ ok = true; done(t); fail(e); });
+  }
+  function wrAll(v){
+    if (!ref || !writable) return;
+    var ok = false;
+    var t = setTimeout(function(){ if (!ok) toast('저장이 늦어. 연결을 확인해줘', true); }, 6000);
+    ref.set(v).then(function(){ ok = true; done(t); toast(''); })
+              .catch(function(e){ ok = true; done(t); fail(e); });
+  }
+
+  /* ---------- 마스코트 : 멜론 안의 아기 ---------- */
+  function mascot(size, week, awake){
+    var t = Math.max(0, Math.min(1, (week - 5) / 31));
+    var r = 4 + t * 15, s = r / 19;
+    var sw = (2.1 * Math.max(.62, s)).toFixed(2);
+    var face = '';
+    if (r >= 7){
+      if (awake){
+        var er = (2.9 * Math.max(.6, s)).toFixed(2);
+        face = '<circle cx="' + (61 - .34*r).toFixed(2) + '" cy="63" r="' + er + '" fill="var(--honey)"/>'
+             + '<circle cx="' + (61 + .34*r).toFixed(2) + '" cy="63" r="' + er + '" fill="var(--honey)"/>';
+      } else {
+        var eye = function(dx){
+          var n = function(v){ return (v * r).toFixed(2); };
+          return '<path d="M' + (61 + dx*r).toFixed(2) + ' 63c' + n(.105) + ' ' + n(.142) + ' '
+            + n(.274) + ' ' + n(.142) + ' ' + n(.379) + ' 0" stroke="var(--honey)" stroke-width="'
+            + sw + '" stroke-linecap="round" fill="none"/>';
+        };
+        face = eye(-0.526) + eye(0.158);
+      }
+    }
+    var baby = r >= 6
+      ? '<g fill="var(--honey)" fill-opacity=".22" stroke="var(--honey)" stroke-width="' + (2.3*Math.max(.7,s)).toFixed(2) + '" stroke-linejoin="round">'
+        + '<circle cx="61" cy="63" r="' + r.toFixed(1) + '"/>'
+        + '<path d="M' + (61 + r*.9).toFixed(1) + ' ' + (63 + r*.58).toFixed(1)
+        + 'c' + (r*.68).toFixed(1) + ' ' + (r*.47).toFixed(1) + ' ' + (r*.63).toFixed(1) + ' ' + (r*1.42).toFixed(1)
+        + ' ' + (-r*.16).toFixed(1) + ' ' + (r*1.68).toFixed(1)
+        + 'c' + (-r*.74).toFixed(1) + ' ' + (r*.26).toFixed(1) + ' ' + (-r*1.47).toFixed(1) + ' ' + (-r*.16).toFixed(1)
+        + ' ' + (-r*1.53).toFixed(1) + ' ' + (-r*.79).toFixed(1) + '" stroke-linecap="round"/></g>'
+      : '<circle cx="61" cy="63" r="' + r.toFixed(1) + '" fill="var(--honey)" fill-opacity=".5" stroke="var(--honey)" stroke-width="1.6"/>';
+    return '<svg class="mascot' + (awake ? ' awake' : '') + '" width="' + size + '" height="' + size
+      + '" viewBox="0 0 140 140" fill="none" aria-hidden="true">'
+      + '<path d="M70 22c0-9 3-14 9-16" stroke="var(--rind)" stroke-width="2.6" stroke-linecap="round"/>'
+      + '<path d="M79 10c7-4 15-1 16 6-8 4-14 2-16-6z" fill="var(--honey)" fill-opacity=".2" stroke="var(--rind)" stroke-width="1.7" stroke-linejoin="round"/>'
+      + '<circle cx="70" cy="76" r="50" fill="var(--honey)" fill-opacity=".09" stroke="var(--honey)" stroke-width="2.6"/>'
+      + '<path d="M70 26C40 43 40 109 70 126" stroke="var(--rind)" stroke-width="1.3" opacity=".55"/>'
+      + '<path d="M70 26c30 17 30 83 0 100" stroke="var(--rind)" stroke-width="1.3" opacity=".55"/>'
+      + baby + face + '</svg>';
+  }
+  /* 앞으로 이렇게 자란다. 멜론은 고정이고 안의 아기만 큰다 — 마스코트 규칙 그대로다.
+     미래 칸은 전부 자는 얼굴이다. 깬 눈은 "지금 요청이 와 있다"는 신호라
+     미래 칸에 넣으면 뜻이 흐려진다. */
+  function growthPath(){
+    if (!growOpen) return '';
+    var h = '<div class="grow" id="grow">';
+    growthStops(lmpDate(), today()).forEach(function(s){
+      h += '<div class="gs' + (s.now ? ' now' : '') + (s.past ? ' past' : '')
+         + (s.last ? ' last' : '') + '">'
+         + mascot(76, s.w, false)
+         + '<b>' + s.w + '주</b>'
+         + '<time>' + (s.last ? '예정일' : fmtDay(s.key).slice(0, 5)) + '</time>'
+         + (s.now ? '<i>지금</i>' : '')
+         + '</div>';
+    });
+    return h + '</div>';
+  }
+  function markSmall(){
+    return '<svg width="24" height="24" viewBox="0 0 140 140" fill="none" aria-hidden="true">'
+      + '<path d="M70 22c0-9 3-14 9-16" stroke="var(--rind)" stroke-width="5.5" stroke-linecap="round"/>'
+      + '<circle cx="70" cy="76" r="50" fill="var(--honey)" fill-opacity=".12" stroke="var(--honey)" stroke-width="5.5"/>'
+      + '<path d="M70 26C42 43 42 109 70 126" stroke="var(--rind)" stroke-width="3.2" opacity=".6"/>'
+      + '<path d="M70 26c28 17 28 83 0 100" stroke="var(--rind)" stroke-width="3.2" opacity=".6"/></svg>';
+  }
+
+  var WEEKLY = {
+    5: "착상이 막 끝났어. 아직 배는 안 나오지만 몸은 이미 바뀌고 있어. 피로가 갑자기 몰려오고 냄새에 예민해질 수 있어.",
+    6: "입덧이 시작될 수 있어. 아침보다 저녁에 더 힘든 사람도 많아. 먹고 싶은 게 하루가 다르게 바뀌어.",
+    7: "심장 소리를 들을 수 있는 시기야. 잠이 쏟아지고, 이유 없이 울컥하기도 해.",
+    8: "입덧이 가장 심해지는 구간으로 가. 냄새 때문에 부엌 근처도 힘들 수 있어.",
+    9: "몸은 계속 힘든데 겉으로는 티가 안 나서 더 답답한 시기야.",
+    10: "손발이 다 생겼어. 입덧이 조금씩 누그러지는 사람도 있어.",
+    11: "초기 검사들을 하는 즈음이야. 병원 다녀온 날은 유난히 지칠 수 있어.",
+    12: "1기가 끝나가. 입덧이 가벼워지고 기운이 조금 돌아오기도 해.",
+    13: "1기 마지막 주. 마음이 한결 놓이는 시기라고들 해.",
+    14: "2기 시작. 흔히 '가장 편한 시기'라고 부르는 구간에 들어섰어.",
+    15: "입맛이 돌아와. 갑자기 먹고 싶은 게 생기기도 해.",
+    16: "배가 조금씩 나오기 시작해. 옷이 슬슬 안 맞아.",
+    17: "태동을 처음 느끼는 사람도 있어. 아주 약한 꿈틀거림이야.",
+    18: "정밀 초음파를 보는 즈음이야. 오래 걸리는 검사라 같이 가면 좋아.",
+    19: "몸무게가 늘면서 허리가 아플 수 있어.",
+    20: "반환점이야. 절반 왔어.",
+    21: "태동이 뚜렷해져. 밖에서 손으로 느껴지기도 해.",
+    22: "다리가 붓거나 밤에 쥐가 나기 시작할 수 있어.",
+    23: "잠자리가 불편해지는 시기. 옆으로 누워 자게 돼.",
+    24: "임신성 당뇨 검사를 하는 즈음이야. 검사 전에 금식이 있어.",
+    25: "배가 눈에 띄게 나와. 조금만 움직여도 숨이 차.",
+    26: "아기가 소리에 반응해. 말을 걸면 움직이기도 해.",
+    27: "2기 마지막 주. 몸이 본격적으로 무거워지기 시작해.",
+    28: "3기 시작. 병원 가는 간격이 짧아져.",
+    29: "속쓰림이 심해질 수 있어. 조금씩 자주 먹는 게 편해.",
+    30: "몸이 무거워서 일상 동작이 다 느려져. 양말 신기도 일이야.",
+    31: "갈비뼈 밑이 결리기도 해. 태동이 세져서 잠을 깨기도 해.",
+    32: "아기가 나올 자세를 잡기 시작해.",
+    33: "화장실이 잦아지고 밤에 자주 깨.",
+    34: "병원 갈 때 들고 갈 짐을 슬슬 생각할 시기야.",
+    35: "진료가 매주로 바뀌는 즈음이야.",
+    36: "만삭에 가까워졌어. 아기가 딱 허니듀 멜론만 해. 오늘이 그 날이야.",
+    37: "언제 나와도 이상하지 않은 시기에 들어섰어.",
+    38: "가진통이 오기도 해. 진짜인지 헷갈릴 수 있어.",
+    39: "하루하루가 길게 느껴져. 기다리는 게 제일 힘들어.",
+    40: "예정일 주간. 예정일에 딱 맞춰 낳는 사람은 오히려 드물대."
+  };
+  /* 주차 구간별 추천 — 서류·일정·집안일·관계만. 의료 지시는 넣지 않는다.
+
+     항목은 객체다: {t:문구, w:마감주차?, src:출처?}
+     - w 가 있으면 담을 때 그 주 시작일이 `on` 이 된다 → 달력에 그 날 점이 찍힌다.
+       없으면 지금 보고 있는 날(또는 구간 시작일)에 붙는다. 집안일·관계가 그쪽이다.
+     - 🔴 w 가 있는 항목은 src 가 반드시 있다. 제도를 지어내지 않기 위한 게이트이고
+       테스트가 이걸 강제한다. 출처를 못 찾은 제도는 넣지 않는다.
+
+     🔴 여기 있는 것은 전국 공통 법·제도뿐이다. 지자체 지원금과 회사 제출물은
+     사는 곳과 직장이 드러나므로 소스에 넣지 않는다 — Firebase 항목으로만 넣는다.
+     이 저장소는 공개다 (예정일조차 소스에 없다).
+
+     ⚠️ 집안일·관계 문구는 여전히 내가 쓴 일반론이고 검증된 목록이 아니다.
+     제도 항목만 1차 출처로 확인했다. */
+  var SUGGEST = [
+    {a:5,  b:7,  l:[
+      {t:"국민행복카드 신청 — 진료비 100만원, 출산 전 아무 때나", w:6,
+       src:"국민건강보험법 시행령 23조 · voucher.go.kr"},
+      {t:"맘편한임신 원스톱 신청 (정부24) — 임신확인서 나오면 바로", w:6,
+       src:"정부24 맘편한임신 통합처리신청"},
+      {t:"임신확인서 받으면 바로 사진 찍어두기"},
+      {t:"산부인과 다음 예약 같이 잡기"},
+      {t:"냉장고에서 냄새나는 것 치우기"},
+      {t:"무거운 건 내가 들기"}
+    ]},
+    {a:8,  b:10, l:[
+      {t:"먹을 수 있는 것 몇 개 상비해두기"},
+      {t:"밤에 냄새 안 나게 설거지 미리 하기"}
+    ]},
+    {a:11, b:13, l:[
+      {t:"회사에 언제 알릴지 같이 정하기"},
+      {t:"검사 일정 캘린더에 넣기"},
+      {t:"배 나오기 전 사진 한 장 남기기"},
+      {t:"입덧 끝나면 먹고 싶다던 것 기억해두기"}
+    ]},
+    {a:14, b:19, l:[
+      {t:"정밀 초음파 같이 가기"},
+      {t:"임부복·속옷 같이 사러 가기"},
+      {t:"태동 느껴지면 같이 손 대보기"},
+      {t:"둘이 갈 만한 데 한 번 다녀오기"}
+    ]},
+    {a:20, b:23, l:[
+      {t:"아기 이름 후보 같이 적어보기"},
+      {t:"출산 준비물 목록 만들기"},
+      {t:"산후조리원 알아보기"},
+      {t:"다리 부으면 주물러주기"}
+    ]},
+    {a:24, b:27, l:[
+      {t:"당뇨 검사일 확인하기 (금식 있음)"},
+      {t:"카시트·침대 같은 큰 것부터 정하기"},
+      {t:"장 보는 건 내가 하기"},
+      {t:"잘 때 쿠션 챙겨주기"}
+    ]},
+    {a:28, b:31, l:[
+      {t:"배우자 출산휴가 20일 — 유급, 출산일부터 120일 안에, 3회 분할", w:30,
+       src:"남녀고용평등법 18조의2 (2025.2.23 시행, 10일→20일)"},
+      {t:"육아휴직은 시작 30일 전까지 신청", w:31,
+       src:"남녀고용평등법 19조"},
+      {t:"출산 가방 목록 만들기"},
+      {t:"병원 가는 길·주차 미리 확인하기"},
+      {t:"양말 신는 것 도와주기"}
+    ]},
+    {a:32, b:35, l:[
+      {t:"출산 가방 실제로 싸기"},
+      {t:"산후조리원 예약 확정하기"},
+      {t:"아기 옷 미리 세탁해두기"},
+      {t:"진통 시 연락 순서 정해두기"}
+    ]},
+    {a:36, b:44, l:[
+      {t:"출생신고 + 첫만남이용권 한 번에 (행복출산 원스톱)", w:40,
+       src:"정부24 행복출산 원스톱서비스"},
+      {t:"가방을 차에 실어두기"},
+      {t:"밤에도 연락 받을 수 있게 해두기"},
+      {t:"병원 연락처 저장하기"},
+      {t:"그냥 옆에 있어주기"}
+    ]}
+  ];
+
+  /* 하지 말 것 — 구간마다 하나. SUGGEST 와 같은 구간을 쓴다.
+     🔴 지어낸 조언이 아니라 위 WEEKLY(그 시기 몸의 변화)에서 곧바로 따라 나오는
+     행동만 적는다. 의학 조언이 아니고, '남편이 무엇을 하지 말지'에 대한 말이다.
+     주차마다 40개를 채우려 들면 이 프로젝트가 실패하는 방식 그대로가 된다. */
+  var DONT = [
+    {a:5,  b:7,  t:"“괜찮아?”만 묻지 않기. 물어보는 대신 위에서 하나를 골라 그냥 하기."},
+    {a:8,  b:10, t:"“뭐 먹고 싶어?”라고 묻지 않기. 어제 먹은 게 오늘은 역할 수 있어. 몇 개 사다 두고 고르게 하기."},
+    {a:11, b:13, t:"“이제 좀 괜찮아졌지?”라고 넘겨짚지 않기. 나아진 날과 아닌 날이 섞여 있어."},
+    {a:14, b:19, t:"“지금 편하다며”로 미루지 않기. 편해진 만큼 하고 싶은 게 쌓여 있어. 같이 나갈 날을 먼저 잡기."},
+    {a:20, b:23, t:"태동을 재촉하지 않기. “왜 안 움직여?”는 걱정만 옮겨. 대신 부은 다리부터 주물러 주기."},
+    {a:24, b:27, t:"검사 전날 밤참 같이 먹자고 하지 않기. 금식이 있어. 대신 끝나고 먹을 걸 미리 정해두기."},
+    {a:28, b:31, t:"허리 굽히는 일을 부탁하지 않기. 양말·신발·바닥에 있는 건 그냥 내가 하기."},
+    {a:32, b:35, t:"출산 가방을 혼자 싸두지 않기. 어디에 뭐가 있는지 둘 다 알아야 해. 같이 싸서 차에 실어두기."},
+    {a:36, b:44, t:"매일 “아직이야?”라고 묻지 않기. 제일 기다리는 사람은 옆에 있어. 연락 되는 상태로 그냥 옆에 있기."}
+  ];
+  function dontFor(w){
+    for (var i = 0; i < DONT.length; i++)
+      if (w >= DONT[i].a && w <= DONT[i].b) return DONT[i].t;
+    return null;
+  }
+
+  function blockFor(w){
+    for (var i = 0; i < SUGGEST.length; i++)
+      if (w >= SUGGEST[i].a && w <= SUGGEST[i].b) return SUGGEST[i];
+    return null;
+  }
+  function suggestFor(w){ var b = blockFor(w); return b ? b.l : []; }
+  /* 이미 앱에 있는 문구. 🔴 지운 것(x)도 '있는 것'으로 센다 —
+     안 그러면 지운 추천이 다시 떠서 '지우더라도'가 안 지켜진다. */
+  function suggestHave(){
+    var have = {}, all = items();
+    Object.keys(all).forEach(function(k){ if (all[k]) have[all[k].t] = 1; });
+    return have;
+  }
+
+  var STARTER = [
+    {t: "산부인과 다음 예약 잡고 캘린더에 넣기", d: false, by: "me"},
+    {t: "임신확인서 받으면 바로 사진 찍어두기", d: false, by: "me"},
+    {t: "냉장고에서 냄새나는 것 먼저 치우기", d: false, by: "me"}
+  ];
+
+  /* ---------- 새로 온 말 : 이 기기가 마지막으로 본 지점 ---------- */
+  function freshList(){
+    var s = ls(SEENK) || '';
+    return list().filter(function(p){ return p[1].by !== 'me' && p[0] > s; });
+  }
+  function markSeen(){
+    var ks = Object.keys(items()).sort();
+    if (ks.length) lsSet(SEENK, ks[ks.length - 1]);
+  }
+
+  /* ---------- 입력 보존 ----------
+     상대가 뭔가 적으면 스냅샷이 와서 화면을 다시 그린다.
+     그때 쓰던 글과 커서가 날아가면 안 된다. */
+  function snapInputs(){
+    INPUTS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) drafts[id] = el.value;
+    });
+    var a = document.activeElement;
+    focusId = (a && a.id && INPUTS.indexOf(a.id) >= 0) ? a.id : null;
+    if (focusId){ try { focusPos = a.selectionStart; } catch(e){ focusPos = 0; } }
+  }
+  function restoreInputs(){
+    INPUTS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && drafts[id] != null) el.value = drafts[id];
+    });
+    var id = focusNext || focusId, pos = focusNext ? 1e9 : focusPos;
+    focusNext = null;
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.focus();
+    var n = Math.min(pos, el.value.length);
+    try { el.setSelectionRange(n, n); } catch(e){}
+  }
+
+  /* ---------- 화면 : 안내 / 설정 ---------- */
+  function gate(msg, sub){
+    app.innerHTML = '<div class="gate">' + mascot(88, 20, false)
+      + '<h1>' + msg + '</h1><p>' + sub + '</p></div>';
+  }
+  function setup(){
+    var other = '';
+    if (gateDate){
+      var d = parseDay(gateDate);
+      other = (gateMode === 'lmp')
+        ? '출산예정일 ' + ymd(addDays(d, 280)).replace(/-/g,'.')
+        : '마지막 생리 시작일 ' + ymd(addDays(d, -280)).replace(/-/g,'.');
+    }
+    app.innerHTML = '<div class="gate">' + mascot(88, 20, false)
+      + '<h1>허니듀</h1>'
+      + '<p>시작하려면 날짜 하나만 알려줘.<br>여기 적은 건 이 링크를 아는 사람만 볼 수 있어.</p>'
+      + '<div class="seg">'
+      + '<button type="button" id="m-lmp" aria-pressed="' + (gateMode==='lmp') + '">마지막 생리 시작일</button>'
+      + '<button type="button" id="m-edd" aria-pressed="' + (gateMode==='edd') + '">출산예정일</button></div>'
+      + '<input type="date" id="gd" value="' + gateDate + '">'
+      + (other ? '<p class="calc">→ ' + other + '</p>' : '')
+      + '<button class="btn" id="go"' + (gateDate ? '' : ' disabled') + '>시작하기</button>'
+      + '<p class="fine">한 번만 하면 돼. 다음부터는 바로 열려.</p></div>';
+    document.getElementById('m-lmp').onclick = function(){ gateMode='lmp'; setup(); };
+    document.getElementById('m-edd').onclick = function(){ gateMode='edd'; setup(); };
+    document.getElementById('gd').onchange = function(e){ gateDate = e.target.value; setup(); };
+    document.getElementById('go').onclick = function(){
+      if (!gateDate) return;
+      var d = parseDay(gateDate);
+      var lmp = (gateMode === 'lmp') ? d : addDays(d, -280);
+      var edd = (gateMode === 'lmp') ? addDays(d, 280) : d;
+      var st = {};
+      for (var i = STARTER.length - 1; i >= 0; i--) st[newKey()] = STARTER[i];
+      S = {lmp: ymd(lmp), edd: ymd(edd), items: st};
+      markSeen();
+      render();
+      wrAll(S);   /* 방을 처음 만드는 순간이라 덮어쓸 것이 없다 */
+    };
+  }
+
+  /* ---------- 항목 한 줄 ---------- */
+  function itemRow(k, showDate, showWho){
+    var it = items()[k];
+    if (!it) return '';
+    if (editKey === k && writable){
+      return '<li><div style="flex:1"><textarea class="field" id="ed" rows="2"></textarea>'
+        + '<div class="edate"><label for="edon">날짜</label>'
+        + '<input type="date" id="edon" value="' + (dayOf(it) || ymd(today())) + '"></div>'
+        + '<div class="erow"><button class="mini" type="button" data-save="' + k + '">저장</button>'
+        + '<button class="mini" type="button" data-cancel="1">취소</button>'
+        + '<button class="mini del" type="button" data-rm="' + k + '">지우기</button></div></div></li>';
+    }
+    var key = dayOf(it);
+    return '<li class="' + (it.d ? 'done' : '') + '">'
+      + '<button class="chk" type="button" data-req="' + k + '" aria-label="'
+      + (it.d ? '완료 취소' : '완료 표시') + '"><span></span></button>'
+      + '<span class="txt"><button class="lab" type="button" data-edit="' + k + '">'
+      + (showWho ? '<span class="who ' + (it.by === 'wife' ? 'wife">엄마' : 'me">아빠') + '</span>' : '')
+      + esc(it.t) + '</button>'
+      + (showDate && key ? '<span class="when">' + fmtDay(key) + '</span>' : '')
+      + '</span>'
+      + '<button class="rm" type="button" data-rm="' + k + '" aria-label="지우기">×</button></li>';
+  }
+
+  function board(){
+    var wife = list().filter(function(p){ return p[1].by !== 'me'; });
+    var h = '<div class="bubble">';
+    if (!wife.length){
+      h += '<p class="says">아직 아무것도 없어. 아래에 적어줘.</p>';
+    } else {
+      var pending = wife.filter(function(p){ return !p[1].d; });
+      var head = pending.length ? pending[0][0] : wife[0][0];
+      /* 고치는 중인 항목은 반드시 보여야 한다. 상대가 뭔가 적으면 그게 머리가 되고
+         고치던 건 접힌 '더 보기' 안으로 밀려 편집창이 통째로 사라진다. */
+      if (editKey && wife.some(function(p){ return p[0] === editKey; })) head = editKey;
+      h += '<p class="says">' + (pending.length ? '엄마가 이렇게 말했어' : '알려줘서 고마워!') + '</p>';
+      h += '<ul class="items">' + itemRow(head, true, false);
+      var rest = wife.filter(function(p){ return p[0] !== head; });
+      if (expanded) rest.forEach(function(p){ h += itemRow(p[0], true, false); });
+      h += '</ul>';
+      if (rest.length){
+        h += '<button class="more" type="button" id="more">'
+          + (expanded ? '접기' : '더 보기 (' + rest.length + ')') + '</button>';
+      }
+    }
+    if (!editKey){
+      h += '<div class="addrow"><textarea class="field" id="inp" rows="1" placeholder="한 줄이면 충분해"></textarea>'
+        + '<button class="btn" id="add" type="button">남기기</button></div>';
+    }
+    return h + '</div>';
+  }
+
+  function myCard(){
+    var vw = viewWeek(), now = (sel === null);
+    var mine = [], always = [];
+    list().forEach(function(p){
+      if (p[1].by !== 'me') return;
+      var k = dayOf(p[1]);
+      if (!k) always.push(p[0]);                 /* 날짜 없는 건 어느 주에나 보인다 */
+      else if (weekOfKey(k) === vw) mine.push(p[0]);
+    });
+    var rows = mine.concat(always);
+    if (editKey && rows.indexOf(editKey) < 0){
+      var eit = items()[editKey];
+      if (eit && !eit.x && eit.by === 'me') rows.unshift(editKey);
+    }
+    var h = '<div class="card mine-c"><div class="h"><h2>'
+      + (now ? '이번 주 아빠가 할 일' : vw + '주에 할 일') + '</h2>'
+      + (now ? '' : '<button class="mini" type="button" id="backtoday">이번 주로</button>')
+      + '</div>';
+    if (rows.length){
+      h += '<ul class="items">';
+      rows.forEach(function(k){ h += itemRow(k, false, false); });
+      h += '</ul>';
+    } else {
+      h += '<p class="empty">' + (now ? '이번 주' : vw + '주') + '엔 아직 없어.</p>';
+    }
+    if (!editKey){
+      var have = suggestHave();
+      var sug = suggestFor(vw).filter(function(s){ return !have[s.t]; });
+      if (sug.length){
+        var blk = blockFor(vw);
+        h += '<p class="sugh"><span>보통 이 즈음 하는 것들 — 누르면 담겨</span>'
+          + (blk && sug.length > 1
+             ? '<button class="mini" type="button" id="addblk">'
+               + blk.a + '~' + blk.b + '주 ' + sug.length + '개 담기</button>' : '')
+          + '</p><div class="sug">';
+        sug.forEach(function(s, k){
+          h += '<button type="button" data-sug="' + k + '"'
+            + (s.src ? ' title="' + esc(s.src) + '"' : '')
+            + '>' + esc(s.t) + '</button>';
+        });
+        h += '</div>';
+        sugCache = sug;
+      } else { sugCache = []; }
+      h += '<div class="addrow"><textarea class="field" id="minp" rows="1" placeholder="'
+        + (now ? '아빠가 할 일' : vw + '주에 할 일') + '"></textarea>'
+        + '<button class="btn" type="button" id="madd">추가</button></div>';
+    }
+    return h + '</div>';
+  }
+
+  /* ---------- 달력 ---------- */
+  function calendar(){
+    var t = today();
+    if (!view) view = {y: t.getFullYear(), m: t.getMonth()};
+    var y = view.y, m = view.m;
+    var first = new Date(y, m, 1), dim = new Date(y, m + 1, 0).getDate();
+    var eddKey = ymd(eddDate()), todayKey = ymd(t);
+    var marks = {};
+    list().forEach(function(p){
+      var k = dayOf(p[1]); if (!k) return;
+      if (!marks[k]) marks[k] = [];
+      marks[k].push(!!p[1].d);
+    });
+    var wa = Math.floor(since(new Date(y, m, 1)) / 7), wb = Math.floor(since(new Date(y, m, dim)) / 7);
+    var span = (wb < 0) ? '' : (Math.max(0, wa) + '주–' + wb + '주');
+
+    var h = '<div class="calhead"><h2>달력</h2>'
+      + (span ? '<span class="span">' + span + '</span>' : '')
+      + '<button class="nav" type="button" id="prev" aria-label="이전 달">‹</button>'
+      + '<span class="mon">' + y + '.' + ('0'+(m+1)).slice(-2) + '</span>'
+      + '<button class="nav" type="button" id="next" aria-label="다음 달">›</button></div><div class="cal">';
+    DOW.forEach(function(d, i){ h += '<div class="dow' + (i === 0 ? ' sun' : '') + '">' + d + '</div>'; });
+    for (var p = 0; p < first.getDay(); p++) h += '<div class="cell pad"></div>';
+    for (var day = 1; day <= dim; day++){
+      var cur = new Date(y, m, day), key = ymd(cur), n = since(cur), cls = 'cell';
+      var isWk = (n >= 0 && n % 7 === 0);
+      if (isWk) cls += ' wkstart';
+      if (key === todayKey) cls += ' today'; else if (cur < t) cls += ' past';
+      if (key === eddKey) cls += ' edd';
+      if (key === sel) cls += ' sel';
+      var dots = '';
+      if (marks[key]){
+        dots = '<span class="dots">';
+        marks[key].slice(0,3).forEach(function(d2){ dots += '<i class="' + (d2 ? 'ok' : '') + '"></i>'; });
+        if (marks[key].length > 3) dots += '<i class="plus">+</i>';
+        dots += '</span>';
+      }
+      h += '<button type="button" class="' + cls + '" data-day="' + key + '" aria-label="' + key + '">'
+        + '<span class="n">' + day + '</span>'
+        + (isWk ? '<span class="w">' + (n/7) + '주</span>' : '') + dots + '</button>';
+    }
+    h += '</div>';
+    /* 마커는 '보고 있는 날'을 가리킨다. 오늘만 가리키면 날짜를 눌러도 안 움직인다. */
+    var railN = sel ? since(parseDay(sel)) : wk().n;
+    h += '<div class="rail"><div class="railbar">'
+      + '<span class="band b1"></span><span class="band b2"></span><span class="band b3"></span>'
+      + (sel ? '<span class="mk now" style="left:' + railPct(wk().n) + '%"><span class="pin"></span></span>' : '')
+      + '<span class="mk" style="left:' + railPct(railN) + '%"><span class="pin"></span><span class="dot"></span></span>'
+      + '</div><div class="railx"><span style="left:0">1기</span>'
+      + '<span style="left:32.5%">2기</span><span style="left:67.5%">3기</span>'
+      + '<span class="r">40주</span></div></div>';
+    h += '<p class="callegend"><b>황록 숫자</b>는 주차가 바뀌는 날. 점은 그 날 항목 — '
+      + '보라는 남은 것, <b>황록은 한 것</b>. <b>날짜를 누르면</b> 그 날 걸 보고 고칠 수 있고, '
+      + '위 막대의 진한 표시가 그 날로 움직여'
+      + (sel ? '. <b>옅은 세로선이 오늘</b>이야.' : '.') + '</p>';
+    return h + dayPanel();
+  }
+  function dayPanel(){
+    if (!sel) return '';
+    var d = parseDay(sel), n = since(d);
+    var wl = (n >= 0) ? Math.floor(n/7) + '주 ' + (n%7) + '일' : '';
+    var idx = list().filter(function(p){ return dayOf(p[1]) === sel; });
+    var h = '<div class="day"><div class="dayhead">'
+      + '<span class="t">' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + DOW[d.getDay()] + '</span>'
+      + (wl ? '<span class="w">' + wl + '</span>' : '')
+      + '<button class="x" type="button" id="dayx" aria-label="닫기">×</button></div>';
+    if (idx.length){
+      h += '<ul class="items">';
+      idx.forEach(function(p){ h += itemRow(p[0], false, true); });
+      h += '</ul>';
+    } else {
+      h += '<p class="dnone">이 날엔 아직 없어.</p>';
+    }
+    if (!editKey){
+      h += '<div class="addrow"><textarea class="field" id="dinp" rows="1" placeholder="이 날에 남길 말"></textarea>'
+        + '<button class="btn" type="button" id="dadd">남기기</button></div>';
+    }
+    return h + '</div>';
+  }
+
+
+  /* ---------- 입덧 때 먹을 것 ----------
+     🔴 이 카드만 유일하게 건강 정보를 화면에 띄운다. 그래서 문장을 지어내지 않는다 —
+     질병관리청 국가건강정보포털 「입덧」(2026-08-13 갱신)의 생활 관리 권고에서
+     '먹는 것'에 해당하는 줄만 그대로 옮겼다. 항목마다 src 를 달고 테스트가 센다.
+     🔴 입덧은 사람마다 다르다. 그래서 목록은 출발점일 뿐이고, 되네/안되네는 아내가 정한다. */
+  var FST = ['아직', '되네', '안되네'];
+
+  var SRC = '질병관리청 국가건강정보포털 「입덧」';
+  /* 🔴 후기는 국가기관 권고가 아니다. 섞으면 같은 무게로 읽히므로 kind 로 갈라
+     화면에서도 묶음을 나눈다. 문구는 마미톡 커뮤니티 「입덧 음식 총정리」(2025-05-12)
+     원문 그대로다 — 한마디를 그대로 두는 것이 "이건 후기다"를 가장 잘 말한다.
+     크래커는 이미 권고 줄에 있어 뺐다. */
+  var SRC2 = '마미톡 커뮤니티 「입덧 음식 총정리」';
+  var FOODS = [
+    {kind:'gov', id:'dry',    t:'마른 것 — 크래커 · 말린 식품 · 고단백 스낵',
+     m:'아침에 일어나자마자', src:SRC},
+    {kind:'gov', id:'cold',   t:'찬 음식',
+     m:'뜨거운 음식 냄새가 힘들 때', src:SRC},
+    {kind:'gov', id:'ginger', t:'생강',
+     m:'구역이 나아졌다는 연구 보고가 있어', src:SRC},
+    {kind:'gov', id:'drink',  t:'물 · 음료 조금씩 자주',
+     m:'하루 약 2L (30~35mL/kg)', src:SRC},
+
+    {kind:'tip', id:'orange', t:'오렌지',
+     m:'상큼해서 기분도 좋아요!', src:SRC2},
+    {kind:'tip', id:'bread',  t:'식빵 · 베이글',
+     m:'식빵도 좋고 베이글 같은 빵류도 좋아요', src:SRC2},
+    {kind:'tip', id:'naeng',  t:'냉면',
+     m:'냉면 육수 한입 마시고 살 것 같았어요!', src:SRC2},
+    {kind:'tip', id:'memil',  t:'모밀',
+     m:'따뜻한 건 다 느끼하고 냄새 나는데, 모밀은 괜찮았어요!', src:SRC2},
+    {kind:'tip', id:'nurung', t:'누룽지',
+     m:'누룽지에 물 말아서 한 숟갈씩 넘겼어요', src:SRC2},
+    {kind:'tip', id:'maesil', t:'매실차',
+     m:'입덧으로 아무것도 못 먹을 때, 매실차 한 모금이 살렸어요', src:SRC2},
+    {kind:'tip', id:'burger', t:'햄버거',
+     m:'모든 음식이 다 울렁거렸는데, 햄버거는 이상하게 괜찮았어요', src:SRC2}
+  ];
+
+  function foodsData(){ return (S && S.foods) ? S.foods : {}; }
+  function foodState(id){ var it = foodsData()[id]; return (it && it.s) || 0; }
+  /* 아내가 덧붙인 것. 씨앗 항목은 s 만 갖고 n 이 없으므로 n 으로 갈린다. */
+  function customFoods(){
+    var o = foodsData(), out = [];
+    Object.keys(o).forEach(function(k){
+      var it = o[k];
+      if (it && it.n && !it.x) out.push([k, it]);
+    });
+    out.sort(function(a, b){ return String(a[1].at || '').localeCompare(String(b[1].at || '')); });
+    return out;
+  }
+  function foodRow(id, name, memo){
+    var st = foodState(id);
+    return '<li><button class="fst f' + st + '" type="button" data-fs="' + esc(id) + '"'
+      + ' aria-label="' + esc(name) + ' — 되네/안되네 바꾸기">' + esc(FST[st] || FST[0]) + '</button>'
+      + '<span class="fb"><b>' + esc(name) + '</b>'
+      + (memo ? '<span class="fm">' + esc(memo) + '</span>' : '') + '</span></li>';
+  }
+  function foodGroup(kind){
+    var rows = FOODS.filter(function(f){ return f.kind === kind; });
+    if (!rows.length) return '';
+    var h = '<ul class="fl">';
+    rows.forEach(function(f){ h += foodRow(f.id, f.t, f.m); });
+    return h + '</ul>';
+  }
+  function foodsCard(){
+    if (!foodsShown(wk().w)) return '';
+    var h = '<div class="card food-c"><div class="h"><h2>입덧 때 먹을 것</h2></div>'
+      + '<p class="body">적은 양을 자주. 자극적인 맛과 지방식은 줄이고, '
+      + '기분 좋을 때나 배고플 때는 언제든 먹어.</p>'
+      + '<p class="fh">권고</p>' + foodGroup('gov')
+      /* 🔴 이 한 줄이 두 묶음의 무게를 가른다. 빼면 후기가 권고처럼 읽힌다. */
+      + '<p class="fh">이게 먹혔대 <span>국가기관 권고가 아니라 다른 임산부들이 한 말이야</span></p>'
+      + foodGroup('tip');
+    var mine = customFoods();
+    if (mine.length){
+      h += '<p class="fh">우리가 찾은 것</p><ul class="fl">';
+      mine.forEach(function(p){ h += foodRow(p[0], p[1].n, ''); });
+      h += '</ul>';
+    }
+    if (writable){
+      h += '<div class="addrow"><textarea class="field" id="finp" rows="1"'
+        + ' placeholder="이건 먹히더라"></textarea>'
+        + '<button class="btn" type="button" id="fadd">추가</button></div>';
+    }
+    /* 🔴 유일하게 건강 정보를 띄우는 카드다. 출처를 화면에도 밝힌다. */
+    return h + '<p class="foot">권고 출처: <b>' + esc(SRC) + '</b> (2026-08-13 갱신) · '
+      + '후기 출처: <b>' + esc(SRC2) + '</b> (2025-05-12).<br>'
+      + '입덧은 사람마다 달라서, 되는 것만 눌러서 표시해줘.</p></div>';
+  }
+  function cycleFood(id){
+    var o = foodsData(), it = o[id] || {};
+    it.s = ((it.s || 0) + 1) % FST.length;
+    S.foods = o; S.foods[id] = it;
+    render(); wr('foods/' + id + '/s', it.s);
+  }
+  function addFood(inp){
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v){ inp.focus(); return; }
+    inp.value = ''; drafts[inp.id] = '';
+    /* 먹히는 것을 적는 칸이라 처음부터 '되네' 로 둔다 */
+    var k = newKey(), it = {n: v, s: 1, at: new Date().toISOString()};
+    S.foods = foodsData(); S.foods[k] = it;
+    render(); wr('foods/' + k, it);
+  }
+
+  /* ---------- 병원 · 조리원 ----------
+     🔴 목록은 소스에 없다. 방(Firebase)에만 있다 — 저장소가 공개라
+     어느 동네 병원 목록인지가 곧 사는 곳이다. 생리 시작일을 뺀 것과 같은 이유. */
+  /* @pure-road:start — 병원 로드맵. test/week.test.js 가 이 블록을 그대로 떼어 검사한다.
+
+     🔴 고르는 표가 아니라 「그래서 언제 어디로 가는가」 를 보는 길이다 (2026-09-21).
+     목록판을 보고 "별로 와닿지가 않아" 는 말이 나왔고, 맞는 말이었다 —
+     목록은 같은 정보를 줄만 바꾼 것이라 순서도 거리도 안 보인다.
+     설계 정본은 DESIGN.md 「🗺️ 병원 로드맵」. */
+
+  /* 역할 이름과 그림. 겪는 순서대로 — 검진 다니다가, 낳으러 가고, 조리원에 간다.
+     🔵 컬러 이모지는 이 카드에서만 쓴다 [사용자 결정 2026-09-21]. 기기마다 모양이
+     다르다는 것을 알고 고른 것이다 — DESIGN.md 「🗺️ 병원 로드맵」. */
+  var PK = [['g', '검진', '🩺'], ['b', '분만', '🏥'], ['c', '조리원', '🛏️']];
+  var ROAD_END = '🎉';
+
+  /* 보이는 곳을 역할별로 묶는다.
+     🔴 x(숨김) 는 여기 한 군데서만 거른다. 두 군데서 거르면 센 개수와
+     보이는 개수가 갈린다. */
+  function placeGroups(o){
+    o = o || {};
+    return PK.map(function(t){
+      var keys = Object.keys(o)
+        .filter(function(k){ return o[k] && o[k].k === t[0] && !o[k].x; })
+        .sort(function(a, b){
+          /* 정한 곳이 먼저. 이름순으로만 두면 대기 중인 곳이 정한 곳 위로 온다. */
+          var da = (o[a].s === 3) ? 0 : 1, db = (o[b].s === 3) ? 0 : 1;
+          if (da !== db) return da - db;
+          return String(o[a].n).localeCompare(String(o[b].n));
+        });
+      return {k: t[0], label: t[1], ic: t[2], keys: keys};
+    }).filter(function(g){ return g.keys.length; });
+  }
+
+  /* 🔴 정거장은 역할이다. 장소가 아니다.
+     장소마다 정거장을 두면 대기 중인 조리원이 「길이 두 갈래로 갈린 것」 처럼 보인다.
+     주차(w)·미정(wq)는 대표 장소(정한 곳)에서 읽는다. */
+  function roadStops(o, cw){
+    var stops = placeGroups(o).map(function(g){
+      var head = (o || {})[g.keys[0]] || {};
+      return {
+        k: g.k, label: g.label, ic: g.ic, keys: g.keys,
+        w: (typeof head.w === 'number') ? head.w : null,
+        q: !!head.wq, gap: null, now: false, past: false
+      };
+    });
+    /* 현재 = 이미 시작한 것 중 마지막. 「아직 안 지난 첫 칸」 으로 잡으면
+       0주부터 다니는 검진이 곧바로 지나간 칸이 돼 허니듀가 한 칸 앞서 간다. */
+    var cur = -1;
+    stops.forEach(function(s, i){ if (s.w !== null && s.w <= cw) cur = i; });
+    stops.forEach(function(s, i){ s.past = i < cur; s.now = i === cur; });
+    /* 남은 주수. 현재 칸 바로 다음은 「지금부터」 로 재고(그게 와닿는 값이다),
+       그 뒤는 앞 정거장에서 잰다(참조한 코스맵의 구간 소요와 같은 뜻). */
+    stops.forEach(function(s, i){
+      if (i <= cur || s.w === null) return;
+      var base = (i - 1 <= cur) ? cw : stops[i - 1].w;
+      if (base === null) return;
+      s.gap = Math.max(0, s.w - base);
+    });
+    return {stops: stops, at: cur < 0 ? 0 : cur};
+  }
+  /* @pure-road:end */
+
+  function places(){ return (S && S.places) ? S.places : {}; }
+  /* 지도는 앱 안에 그리지 않는다. 카카오맵을 이길 수 없고 좌표를 관리하게 된다.
+     이름으로 검색 링크만 넘긴다 — 좌표가 없어도 되고 앱이 깔려 있으면 앱이 뜬다. */
+  function mapLink(it){
+    return 'https://map.kakao.com/link/search/' + encodeURIComponent(it.n);
+  }
+
+  /* 구간 — 굽은 길 한 토막. 미정이면 점선이다.
+     🔴 실선으로 그리면 정해진 것처럼 보인다 (확인 안 된 것이 확인된 것처럼 보이면 안 된다). */
+  function roadCurve(dashed){
+    return '<svg class="rc" width="44" height="54" viewBox="0 0 44 54" fill="none" aria-hidden="true">'
+      + '<path d="M15 0 C15 18 37 18 37 27 C37 36 15 36 15 54" stroke="var(--plum-dim)"'
+      + ' stroke-width="2" stroke-linecap="round"'
+      + (dashed ? ' stroke-dasharray="1 6"' : '') + '/></svg>';
+  }
+
+  function stopBody(st){
+    var o = places(), h = '<div class="rbody">';
+    st.keys.forEach(function(k, i){
+      var it = o[k];
+      if (!it) return;
+      h += '<div class="rp">';
+      if (i) h += '<span class="rpn">' + esc(it.n) + '</span>';
+      if (it.m) h += '<span class="mm">' + esc(it.m) + '</span>';
+      if (it.q && it.q.length){
+        h += '<div class="todo"><b>아직 안 정한 것</b><ul>';
+        it.q.forEach(function(t){ h += '<li>' + esc(t) + '</li>'; });
+        h += '</ul></div>';
+      }
+      h += '<span class="acts"><a href="' + esc(mapLink(it)) + '" target="_blank" rel="noopener">길찾기</a>'
+        + (it.p ? '<a href="tel:' + esc(it.p.replace(/[^0-9]/g, '')) + '">전화</a>' : '')
+        + (writable ? '<button type="button" data-pm="' + k + '">메모</button>' : '')
+        + '</span></div>';
+    });
+    return h + '</div>';
+  }
+
+  /* 펼친 칸을 접고 나면 무엇이 그 안에 있었는지 알 수 있어야 한다.
+     닫힌 채로 「아직 안 정한 것」 이 안 보이면 물어볼 것을 영영 안 물어본다. */
+  function stopHint(st){
+    var o = places(), head = o[st.keys[0]] || {}, bits = [];
+    if (head.q && head.q.length) bits.push('아직 안 정한 것 ' + head.q.length + '개');
+    st.keys.slice(1).forEach(function(k){ if (o[k]) bits.push('또는 ' + o[k].n); });
+    return bits.length ? '<span class="rhint">' + esc(bits.join(' · ')) + '</span>' : '';
+  }
+
+  function placesCard(){
+    var r = roadStops(places(), wk().w);
+    var h = '<div class="card"><div class="h"><h2>병원 · 조리원</h2></div>';
+    if (!r.stops.length) return h + '<p class="empty">아직 없어.</p></div>';
+
+    var W = wk();
+    h += '<div class="road">';
+    r.stops.forEach(function(st, i){
+      /* 허니듀가 현재 칸에 선다. 주차가 지나면 저절로 아래로 내려간다. */
+      if (i === r.at){
+        h += '<div class="rnow">' + markSmall()
+          + '<span>지금 · ' + W.w + '주 ' + W.d + '일</span></div>';
+      }
+      if (st.gap !== null){
+        h += '<div class="rseg">' + roadCurve(st.q)
+          + '<span>' + st.gap + '주' + (st.q ? '쯤' : '') + ' 뒤</span></div>';
+      }
+      var open = openStop === st.k, it = places()[st.keys[0]] || {};
+      h += '<div class="rs' + (st.now ? ' now' : '') + (st.past ? ' past' : '') + '">'
+        + '<span class="rg" data-ic="' + esc(st.ic) + '"><i></i></span>'
+        + '<div class="rc-body"><button type="button" class="rhead" data-rs="' + st.k + '"'
+        + ' aria-expanded="' + open + '">'
+        + '<span class="rl">' + esc(st.label) + '</span>'
+        + '<span class="rn">' + esc(it.n || '') + '</span>'
+        + '<span class="rcar">' + (open ? '접기' : '보기') + '</span></button>'
+        + stopHint(st)
+        + (open ? stopBody(st) : '')
+        + '</div></div>';
+    });
+    if (r.at >= r.stops.length){
+      h += '<div class="rnow">' + markSmall()
+        + '<span>지금 · ' + W.w + '주 ' + W.d + '일</span></div>';
+    }
+    h += '<div class="rend"><span class="rg" data-ic="' + ROAD_END + '"></span>'
+      + '<span>예정일 ' + S.edd.replace(/-/g, '.') + ' · D-' + dday() + '</span></div>';
+    return h + '</div></div>';
+  }
+
+  function editMemo(k){
+    var it = places()[k];
+    if (!it) return;
+    var v = window.prompt('메모 (비우면 지워져)', it.m || '');
+    if (v === null) return;
+    v = v.trim();
+    if (v) it.m = v; else delete it.m;
+    render(); wr('places/' + k + '/m', v || null);
+  }
+
+  /* ---------- 지운 것 ----------
+     삭제는 흔적을 남긴다. 한쪽이 상대 말을 조용히 없앨 수 있으면
+     이건 소통 도구가 아니라 그냥 지우개다. */
+  function trashBox(){
+    var t = trashed();
+    if (!t.length) return '';
+    var h = '<div class="trash"><button type="button" id="trashtoggle">'
+      + (showTrash ? '접기' : '지운 것 (' + t.length + ')') + '</button>';
+    if (showTrash){
+      h += '<ul class="items">';
+      t.forEach(function(p){
+        h += '<li class="gone"><span class="txt">'
+          + '<span class="who ' + (p[1].by === 'wife' ? 'wife">엄마' : 'me">아빠') + '</span>'
+          + esc(p[1].t) + '</span>'
+          + '<button class="mini" type="button" data-undo="' + p[0] + '">되돌리기</button></li>';
+      });
+      h += '</ul>';
+    }
+    return h + '</div>';
+  }
+
+  /* ---------- 렌더 ---------- */
+  function render(){
+    snapInputs();
+    if (!S){ setup(); restoreInputs(); return; }
+    if (editKey){                                       /* 고치던 걸 상대가 지웠다 */
+      var eNow = items()[editKey];
+      if (!eNow || eNow.x){
+        editKey = null; delete drafts.ed; delete drafts.edon; focusNext = null;
+        toast('고치던 항목을 상대가 지웠어', true);
+      }
+    }
+
+    var W = wk(), D = dday(), note = WEEKLY[W.w];
+    var awake = list().some(function(p){ return !p[1].d; });
+    var fresh = freshList();
+    var h = '<div class="wrap">';
+    h += '<div class="top">' + markSmall() + '<span class="name">허니듀</span>'
+       + (writable ? '' : '<span class="mode">읽기 전용</span>') + '</div>';
+    if (!online){
+      h += '<div class="note warn">오프라인이야. 지금 적은 건 연결되면 올라가.</div>';
+    }
+    if (fresh.length){
+      h += '<div class="note fresh"><b>새로 온 말 ' + fresh.length + '개</b>'
+        + '<button type="button" id="seen">봤어</button></div>';
+    }
+    if (W.n >= 0 && W.d === 0){
+      h += '<div class="note turn">오늘부터 <b>' + W.w + '주</b>야.</div>';
+    }
+    if (undoKey){
+      h += '<div class="undo"><span>지웠어</span><b>' + esc(undoText) + '</b>'
+        + '<button type="button" id="undo">되돌리기</button></div>';
+    }
+    h += '<div class="hero">'
+       + '<button type="button" class="grow-t" id="growt" aria-expanded="' + growOpen + '"'
+       + ' aria-label="허니듀가 어떻게 자라는지 보기">' + mascot(96, W.w, awake) + '</button>'
+       + '<div class="txt"><span class="wk">' + W.w + '주 ' + W.d + '일</span>'
+       + '<span class="dday">D-' + D + '</span>'
+       + '<span class="edd">예정일 ' + S.edd.replace(/-/g,'.') + '</span></div></div>';
+    h += growthPath();
+    h += board();
+    h += '<div class="card">' + calendar() + '</div>';
+    var vw = viewWeek(), vnote = WEEKLY[vw], dnote = dontFor(vw);
+    h += '<div class="card body-c"><div class="h"><h2>'
+       + (sel === null ? '이번 주 몸' : '그 주 몸') + '</h2>'
+       + '<span class="weekno">' + vw + '주</span></div>'
+       + (vnote ? '<p class="body">' + esc(vnote) + '</p>'
+                : '<p class="empty">이 주차 설명은 아직 없어.</p>')
+       + (dnote ? '<div class="dont"><b>하지 말 것</b>' + esc(dnote) + '</div>' : '')
+       + '</div>';
+    h += myCard();
+    h += foodsCard();
+    h += placesCard();
+    h += trashBox();
+    h += '<p class="foot">주차별 이야기는 <b>일반적으로 알려진 내용</b>이야. 사람마다 다르고, '
+       + '정확한 건 병원이 말해주는 게 맞아. 이상하거나 빠진 게 있으면 그냥 위에 적어줘.</p></div>';
+    app.innerHTML = h;
+    wire();
+    restoreInputs();
+  }
+
+  function wire(){
+    var inp = document.getElementById('inp');
+    if (inp) inp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addItem(inp, null); }
+    });
+    var add = document.getElementById('add');
+    if (add) add.addEventListener('click', function(){ addItem(inp, null); });
+    var dinp = document.getElementById('dinp'), dadd = document.getElementById('dadd');
+    if (dadd) dadd.addEventListener('click', function(){ addItem(dinp, sel); });
+    if (dinp) dinp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addItem(dinp, sel); }
+    });
+    var minp = document.getElementById('minp'), madd = document.getElementById('madd');
+    if (madd) madd.addEventListener('click', function(){ addMine(minp); });
+    if (minp) minp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addMine(minp); }
+    });
+    app.querySelectorAll('[data-req]').forEach(function(b){
+      b.addEventListener('click', function(){ toggle(b.dataset.req); });
+    });
+    app.querySelectorAll('[data-edit]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k = b.dataset.edit, it = items()[k];
+        if (!it) return;
+        editKey = k; drafts.ed = it.t; drafts.edon = dayOf(it) || ymd(today()); focusNext = 'ed';
+        render();
+      });
+    });
+    app.querySelectorAll('[data-save]').forEach(function(b){
+      b.addEventListener('click', function(){ saveEdit(b.dataset.save); });
+    });
+    app.querySelectorAll('[data-cancel]').forEach(function(b){
+      b.addEventListener('click', function(){
+        editKey = null; delete drafts.ed; delete drafts.edon; render();
+      });
+    });
+    app.querySelectorAll('[data-rm]').forEach(function(b){
+      b.addEventListener('click', function(){ del(b.dataset.rm); });
+    });
+    app.querySelectorAll('[data-undo]').forEach(function(b){
+      b.addEventListener('click', function(){ undo(b.dataset.undo); });
+    });
+    app.querySelectorAll('[data-day]').forEach(function(b){
+      b.addEventListener('click', function(){
+        sel = (sel === b.dataset.day) ? null : b.dataset.day; editKey = null; render();
+      });
+    });
+    var ab = document.getElementById('addblk');
+    if (ab) ab.addEventListener('click', addBlock);
+    app.querySelectorAll('[data-sug]').forEach(function(b){
+      b.addEventListener('click', function(){ addSug(sugCache[+b.dataset.sug]); });
+    });
+    var un = document.getElementById('undo');
+    if (un) un.addEventListener('click', function(){ undo(undoKey); });
+    var sn = document.getElementById('seen');
+    if (sn) sn.addEventListener('click', function(){ markSeen(); render(); });
+    app.querySelectorAll('[data-rs]').forEach(function(b){
+      b.addEventListener('click', function(){
+        openStop = (openStop === b.dataset.rs) ? null : b.dataset.rs; render();
+      });
+    });
+    app.querySelectorAll('[data-pm]').forEach(function(b){
+      b.addEventListener('click', function(){ editMemo(b.dataset.pm); });
+    });
+    app.querySelectorAll('[data-fs]').forEach(function(b){
+      b.addEventListener('click', function(){ cycleFood(b.dataset.fs); });
+    });
+    var finp = document.getElementById('finp'), fadd = document.getElementById('fadd');
+    if (fadd) fadd.addEventListener('click', function(){ addFood(finp); });
+    if (finp) finp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); addFood(finp); }
+    });
+    var tt = document.getElementById('trashtoggle');
+    if (tt) tt.addEventListener('click', function(){ showTrash = !showTrash; render(); });
+    var bt = document.getElementById('backtoday');
+    if (bt) bt.addEventListener('click', function(){ sel = null; editKey = null; render(); });
+    var mo = document.getElementById('more');
+    if (mo) mo.addEventListener('click', function(){ expanded = !expanded; render(); });
+    var gt = document.getElementById('growt');
+    if (gt) gt.addEventListener('click', function(){ growOpen = !growOpen; render(); });
+    var x = document.getElementById('dayx');
+    if (x) x.addEventListener('click', function(){ sel = null; editKey = null; render(); });
+    var p = document.getElementById('prev'), nx = document.getElementById('next');
+    if (p) p.addEventListener('click', function(){ shift(-1); });
+    if (nx) nx.addEventListener('click', function(){ shift(1); });
+  }
+  function shift(k){
+    var m = view.m + k, y = view.y;
+    if (m < 0){ m = 11; y--; } else if (m > 11){ m = 0; y++; }
+    view = {y: y, m: m}; render();
+  }
+
+  /* ---------- 동작 : 화면을 먼저 바꾸고, 그 항목 하나만 쓴다 ---------- */
+  /* 여러 항목을 한 번에. ref.update 는 경로별로 써서 형제를 덮지 않는다.
+     항목마다 set 을 부르면 저장 지연 토스트가 개수만큼 뜬다. */
+  function wrMulti(map){
+    if (!ref || !writable) return;
+    var ok = false;
+    var t = setTimeout(function(){ if (!ok) toast('저장이 늦어. 연결을 확인해줘', true); }, 6000);
+    ref.update(map).then(function(){ ok = true; done(t); toast(''); })
+                   .catch(function(e){ ok = true; done(t); fail(e); });
+  }
+  function put(k, it){
+    S.items = items(); S.items[k] = it;
+    render(); wr('items/' + k, it);
+  }
+  function addItem(inp, on){
+    undoKey = null;
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v){ inp.focus(); return; }
+    var it = {t: v, d: false, by: 'wife', at: new Date().toISOString()};
+    if (on) it.on = on;
+    inp.value = ''; drafts[inp.id] = '';
+    var k = newKey();
+    S.items = items(); S.items[k] = it;
+    markSeen();                 /* 이 기기에서 적은 건 나한테 새 글이 아니다 */
+    editKey = null;
+    render(); wr('items/' + k, it);
+  }
+  function addMine(inp){
+    undoKey = null;
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v){ inp.focus(); return; }
+    inp.value = ''; drafts[inp.id] = '';
+    editKey = null;
+    put(newKey(), {t: v, d: false, by: 'me', at: new Date().toISOString(), on: sel || ymd(today())});
+  }
+  /* 담을 때 붙는 날짜.
+     🔴 마감이 있는 제도(w)는 그 마감 주에 붙인다 — 담은 날이 아니다.
+     그러지 않으면 12주에 닫히는 것이 8주에 찍혀, 달력이 기한을 거짓으로 말한다.
+     w 가 없는 것(집안일·관계)은 종전대로 지금 보고 있는 자리에 붙는다. */
+  function sugOn(s, b){
+    if (s.w !== undefined) return weekStartKey(lmpDate(), s.w);
+    if (b){
+      var w = wk().w;
+      return (w >= b.a && w <= b.b) ? ymd(today()) : weekStartKey(lmpDate(), b.a);
+    }
+    return sel || ymd(today());
+  }
+  /* 구간째 담기. 이미 있는 문구는 건너뛰므로 다 담기면 버튼이 사라지고,
+     지운 건 다시 안 생긴다. */
+  function addBlock(){
+    var b = blockFor(viewWeek());
+    if (!b) return;
+    undoKey = null; editKey = null;
+    var have = suggestHave(), now = new Date().toISOString(), map = {}, n = 0;
+    S.items = items();
+    b.l.forEach(function(s){
+      if (have[s.t]) return;
+      var k = newKey(), it = {t: s.t, d: false, by: 'me', at: now, on: sugOn(s, b)};
+      S.items[k] = it; map['items/' + k] = it; n++;
+    });
+    if (!n) return;
+    markSeen();                 /* 내가 담은 건 나한테 새 글이 아니다 */
+    render(); wrMulti(map);
+  }
+  function addSug(s){
+    if (!s || !s.t) return;
+    undoKey = null;
+    put(newKey(), {t: s.t, d: false, by: 'me', at: new Date().toISOString(),
+                   on: sugOn(s, blockFor(viewWeek()))});
+  }
+  function toggle(k){
+    var it = items()[k];
+    if (!it) return;
+    undoKey = null; it.d = !it.d;
+    render(); wr('items/' + k + '/d', it.d);
+  }
+  function saveEdit(k){
+    var ed = document.getElementById('ed'), it = items()[k];
+    if (!ed || !it) return;
+    var v = ed.value.trim();
+    if (!v){ ed.focus(); return; }
+    /* 날짜도 함께 저장한다. 이게 '옮기기'다 — 지우고 다시 쓸 필요가 없다. */
+    var dn = document.getElementById('edon'), on = dn ? dn.value : '';
+    var moved = /^\d{4}-\d{2}-\d{2}$/.test(on) && on !== it.on;
+    it.t = v; if (moved) it.on = on;
+    editKey = null; delete drafts.ed; delete drafts.edon; focusId = null;
+    render();
+    wr('items/' + k + '/t', v);
+    if (moved) wr('items/' + k + '/on', on);
+  }
+  function del(k){
+    var it = items()[k];
+    if (!it) return;
+    it.x = true;                       /* 지우되 없애지 않는다 — 양쪽에서 되돌릴 수 있게 */
+    undoKey = k; undoText = it.t;
+    editKey = null; delete drafts.ed; delete drafts.edon; focusId = null;
+    render(); wr('items/' + k + '/x', true);
+  }
+  function undo(k){
+    var it = k && items()[k];
+    if (!it) return;
+    delete it.x;
+    if (undoKey === k) undoKey = null;
+    render(); wr('items/' + k + '/x', null);
+  }
+
+  /* 안드로이드에서 '앱 설치'(WebAPK)가 되려면 서비스워커가 있어야 한다.
+     없으면 크롬이 단순 바로가기만 만들고, 런처에 따라 그마저 안 생긴다.
+     sw.js 는 캐시를 하지 않는다 — 이유는 그 파일 주석에. */
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+
+  /* ---------- 시작 ---------- */
+  if (!ROOM || ROOM.length < 24){
+    /* 홈화면 아이콘으로 열었다면 '받은 링크를 다시 눌러줘'가 소용없다 —
+       누를 링크가 화면에 없다. 무엇을 해야 하는지 그대로 적어 준다. */
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+                     || navigator.standalone === true;
+    if (standalone){
+      gate('열쇠가 안 담겼어',
+           '이 아이콘에 방 주소가 안 들어갔어. 받은 링크를 한 번 연 다음, '
+           + '그 화면에서 다시 홈 화면에 추가해줘.');
+    } else {
+      gate('링크가 짧아', '주소 끝에 붙은 긴 열쇠까지 같이 눌러야 열려. 받은 링크를 다시 눌러줘.');
+    }
+    return;
+  }
+  if (FB.apiKey.indexOf('__') === 0){
+    gate('아직 준비 중', '설정이 끝나면 열려.');
+    return;
+  }
+
+  gate('여는 중…', '잠깐만.');
+  try {
+    firebase.initializeApp(FB);
+    ref = firebase.database().ref('rooms/' + ROOM);
+  } catch (e){
+    gate('연결이 안 돼', '잠시 뒤에 새로고침해줘.');
+    return;
+  }
+
+  /* 연결이 끊긴 걸 알려준다. 최초 실패만 잡으면 그 뒤의 끊김은 조용히 지나간다. */
+  firebase.database().ref('.info/connected').on('value', function(s){
+    var was = online;
+    online = !!s.val();
+    if (was === online) return;
+    if (!online) toast('오프라인 — 지금 적은 건 연결되면 올라가', true);
+    else toast('');
+    if (S) render();
+  });
+
+  ref.on('value', function(snap){
+    var v = snap.val();
+    ready = true;
+    if (!v){ S = null; render(); return; }          /* 방이 비었으면 설정 화면 */
+    if (!v.items) v.items = {};
+    if (isLegacy(v)){
+      var conv = migrate(v);
+      S = {lmp: v.lmp, edd: v.edd, items: conv};
+      render();
+      wr('items', conv);                            /* 한 번만. 다음 스냅샷은 이미 객체다 */
+      return;
+    }
+    S = v;
+    render();
+  }, function(err){
+    writable = false;
+    gate('열 수 없어', '링크가 맞는지 확인해줘. (' + (err && err.code ? err.code : 'error') + ')');
+  });
+
+  setTimeout(function(){
+    if (!ready) gate('느리네', '인터넷이 느리거나 연결이 막혔어. 새로고침해봐.');
+  }, 12000);
+})();
+</script>
+</body>
+</html>
